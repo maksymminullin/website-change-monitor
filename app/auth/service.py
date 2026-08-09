@@ -6,7 +6,7 @@ from auth.security import (
     hash_password,
     verify_password,
 )
-from exceptions.auth import InvalidCredentialsError, InvalidRefreshTokenError
+from exceptions import InvalidCredentialsError, InvalidRefreshTokenError
 from exceptions.user import UserAlreadyExistsError
 from repositories.user import UserRepository
 from schemas.auth import RefreshTokenRequest, TokenResponse

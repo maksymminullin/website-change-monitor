@@ -1,12 +1,12 @@
 from typing import Annotated
 
 import jwt
+from auth.service import AuthService
 from core.config import settings
 from core.database import get_db_session
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from repositories.user import UserRepository
-from services.auth import AuthService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -14,10 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 
 async def get_current_user(
     token: Annotated[str, Depends(oauth2_scheme)],
-    session: Annotated[
-        AsyncSession,
-        Depends(get_db_session),
-    ],
+    session: Annotated[AsyncSession, Depends(get_db_session)],
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

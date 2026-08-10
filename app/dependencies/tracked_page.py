@@ -10,4 +10,4 @@ from sqlalchemy.ext.asyncio import AsyncSession
 def get_tracked_page_service(
     session: Annotated[AsyncSession, Depends(get_db_session)],
 ) -> TrackedPageService:
-    return TrackedPageService(TrackedPageRepository(session))
+    return TrackedPageService(TrackedPageRepository(session), session)

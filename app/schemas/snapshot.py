@@ -1,12 +1,6 @@
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
-
-
-class SnapshotCreate(BaseModel):
-    tracked_page_id: int = Field(gt=0)
-    content_hash: str = Field(min_length=64, max_length=64)
-    content_text: str = Field(min_length=1)
+from pydantic import BaseModel, ConfigDict
 
 
 class SnapshotRead(BaseModel):

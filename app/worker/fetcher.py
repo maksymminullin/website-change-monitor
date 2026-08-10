@@ -1,0 +1,40 @@
+import hashlib
+
+import httpx
+from bs4 import BeautifulSoup
+from exceptions.fetcher import PageFetchError
+from schemas.fetcher import FetchedPage
+
+
+class PageFetcher:
+    def __init__(self, timeout: int = 10):
+        self.timeout = timeout
+
+    async def fetch(self, url: str) -> FetchedPage:
+        try:
+            async with httpx.AsyncClient(timeout=self.timeout) as client:
+                response = await client.get(url)
+                response.raise_for_status()
+                html = response.text
+        except httpx.HTTPError as e:
+            raise PageFetchError(f"Failed to fetch {url}: {str(e)}") from e
+
+        soup = BeautifulSoup(html, "html.parser")
+
+        title = "No title"
+        if soup.title and soup.title.string:
+            title = soup.title.string.strip()
+
+        for element in soup(["script", "style", "noscript", "meta"]):
+            element.extract()
+
+        clean_text = soup.get_text(separator=" ", strip=True)
+
+        content_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
+
+        return FetchedPage(
+            url=url,
+            title=title,
+            clean_text=clean_text,
+            content_hash=content_hash,
+        )

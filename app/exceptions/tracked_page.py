@@ -4,7 +4,3 @@ class TrackedPageNotFoundError(Exception):
 
 class TrackedPageAlreadyExistsError(Exception):
     pass
-
-
-class EmptyTrackedPageUpdateError(Exception):
-    pass

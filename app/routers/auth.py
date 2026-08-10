@@ -1,12 +1,16 @@
+import logging
 from typing import Annotated
 
-from auth.dependencies import get_auth_service
+from dependencies.auth import get_auth_service
 from exceptions.auth import InvalidCredentialsError, InvalidRefreshTokenError
+from exceptions.user import UserAlreadyExistsError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 from schemas.auth import RefreshTokenRequest, TokenResponse
 from schemas.user import UserCreate
 from services.auth import AuthService
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -18,7 +22,7 @@ async def register(
     try:
         return await auth_service.register(user_in)
 
-    except InvalidCredentialsError as e:
+    except UserAlreadyExistsError as e:
         raise HTTPException(
             status_code=status.HTTP_409_CONFLICT,
             detail=str(e) or "Username already exists",

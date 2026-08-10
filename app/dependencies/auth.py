@@ -1,12 +1,12 @@
 from typing import Annotated
 
 import jwt
-from auth.service import AuthService
-from core.config import settings
 from core.database import get_db_session
+from core.security import decode_access_token
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from repositories.user import UserRepository
+from services.auth import AuthService
 from sqlalchemy.ext.asyncio import AsyncSession
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -25,7 +25,7 @@ async def get_current_user(
     )
 
     try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+        payload = decode_access_token(token)
         if payload.get("type") != "access":
             raise credentials_exception
 
@@ -50,4 +50,4 @@ async def get_current_user(
 
 
 def get_auth_service(session: Annotated[AsyncSession, Depends(get_db_session)]) -> AuthService:
-    return AuthService(UserRepository(session))
+    return AuthService(UserRepository(session), session)

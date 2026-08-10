@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Literal
 from urllib.parse import urlparse
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -21,6 +22,7 @@ class TrackedPageRead(BaseModel):
     id: int
     url: str = Field(min_length=1, max_length=2048)
     title: str | None = None
+    status: str
     created_at: datetime
     last_checked_at: datetime | None = None
     last_changed_at: datetime | None = None
@@ -29,7 +31,4 @@ class TrackedPageRead(BaseModel):
 
 
 class TrackedPageUpdate(BaseModel):
-    title: str | None = Field(default=None, max_length=255)
-    status: str | None = Field(default=None, max_length=50)
-    last_checked_at: datetime | None = None
-    last_changed_at: datetime | None = None
+    status: Literal["active", "archived"]

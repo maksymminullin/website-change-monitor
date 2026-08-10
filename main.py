@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_setting
+from app.routers.auth import router as auth_router
+from app.routers.tracked_page import router as tracked_page_router
 
 
 @asynccontextmanager
@@ -20,3 +22,7 @@ app = FastAPI(
 )
 
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
+app.include_router(tracked_page_router, prefix="/api/v1", tags=["Tracked Pages"])

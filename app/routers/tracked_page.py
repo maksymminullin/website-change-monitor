@@ -1,18 +1,16 @@
 from typing import Annotated
 
-from dependencies.auth import get_current_user
-from dependencies.snapshot import get_snapshot_service
-from dependencies.tracked_page import get_tracked_page_service
-from exceptions.tracked_page import (
-    TrackedPageAlreadyExistsError,
-    TrackedPageNotFoundError,
-)
 from fastapi import APIRouter, Depends, HTTPException, status
-from models.user import User
-from schemas.snapshot import SnapshotRead
-from schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
-from services.snapshot import SnapshotService
-from services.tracked_page import TrackedPageService
+
+from app.dependencies.auth import get_current_user
+from app.dependencies.snapshot import get_snapshot_service
+from app.dependencies.tracked_page import get_tracked_page_service
+from app.exceptions.tracked_page import TrackedPageAlreadyExistsError, TrackedPageNotFoundError
+from app.models.user import User
+from app.schemas.snapshot import SnapshotRead
+from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
+from app.services.snapshot import SnapshotService
+from app.services.tracked_page import TrackedPageService
 
 router = APIRouter(prefix="/tracked-pages", tags=["tracked-pages"])
 

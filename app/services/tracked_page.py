@@ -1,11 +1,9 @@
-from exceptions.tracked_page import (
-    TrackedPageAlreadyExistsError,
-    TrackedPageNotFoundError,
-)
-from repositories.tracked_page import TrackedPageRepository
-from schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.exceptions.tracked_page import TrackedPageAlreadyExistsError, TrackedPageNotFoundError
+from app.repositories.tracked_page import TrackedPageRepository
+from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
 
 
 class TrackedPageService:

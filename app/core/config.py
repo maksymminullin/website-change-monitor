@@ -25,4 +25,4 @@ def get_setting() -> Setting:
     return Setting()
 
 
-settings = Settings()
+settings = Setting()

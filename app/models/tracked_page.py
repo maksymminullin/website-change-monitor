@@ -1,8 +1,9 @@
 from datetime import UTC, datetime
 
-from base import Base
 from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
+
+from app.models.base import Base
 
 
 class TrackedPage(Base):

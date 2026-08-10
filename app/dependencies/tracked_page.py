@@ -1,10 +1,11 @@
 from typing import Annotated
 
-from core.database import get_db_session
 from fastapi import Depends
-from repositories.tracked_page import TrackedPageRepository
-from services.tracked_page import TrackedPageService
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db_session
+from app.repositories.tracked_page import TrackedPageRepository
+from app.services.tracked_page import TrackedPageService
 
 
 def get_tracked_page_service(

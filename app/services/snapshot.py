@@ -1,8 +1,8 @@
-from exceptions.tracked_page import TrackedPageNotFoundError
-from models.snapshot import Snapshot
-from repositories.snapshot import SnapshotRepository
-from repositories.tracked_page import TrackedPageRepository
-from schemas.snapshot import SnapshotRead
+from app.exceptions.tracked_page import TrackedPageNotFoundError
+from app.models.snapshot import Snapshot
+from app.repositories.snapshot import SnapshotRepository
+from app.repositories.tracked_page import TrackedPageRepository
+from app.schemas.snapshot import SnapshotRead
 
 
 class SnapshotService:

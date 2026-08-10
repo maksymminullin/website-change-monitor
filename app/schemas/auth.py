@@ -1,5 +1,6 @@
 from pydantic import BaseModel
-from schemas.user import UserRead
+
+from app.schemas.user import UserRead
 
 
 class RefreshTokenRequest(BaseModel):

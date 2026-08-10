@@ -1,13 +1,14 @@
 from typing import Annotated
 
 import jwt
-from core.database import get_db_session
-from core.security import decode_access_token
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
-from repositories.user import UserRepository
-from services.auth import AuthService
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db_session
+from app.core.security import decode_access_token
+from app.repositories.user import UserRepository
+from app.services.auth import AuthService
 
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
 

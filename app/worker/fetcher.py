@@ -2,8 +2,9 @@ import hashlib
 
 import httpx
 from bs4 import BeautifulSoup
-from exceptions.fetcher import PageFetchError
-from schemas.fetcher import FetchedPage
+
+from app.exceptions.fetcher import PageFetchError
+from app.schemas.fetcher import FetchedPage
 
 
 class PageFetcher:

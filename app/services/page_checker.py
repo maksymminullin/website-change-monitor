@@ -1,11 +1,12 @@
 import asyncio
 from datetime import UTC, datetime
 
-from exceptions.fetcher import PageFetchError
-from repositories.snapshot import SnapshotRepository
-from repositories.tracked_page import TrackedPageRepository
 from sqlalchemy.ext.asyncio import AsyncSession
-from worker.fetcher import PageFetcher
+
+from app.exceptions.fetcher import PageFetchError
+from app.repositories.snapshot import SnapshotRepository
+from app.repositories.tracked_page import TrackedPageRepository
+from app.worker.fetcher import PageFetcher
 
 
 class PageCheckerService:

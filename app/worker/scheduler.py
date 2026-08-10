@@ -1,9 +1,10 @@
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
-from core.database import async_session_factory
-from repositories.snapshot import SnapshotRepository
-from repositories.tracked_page import TrackedPageRepository
-from services.page_checker import PageCheckerService
-from worker.fetcher import PageFetcher
+
+from app.core.database import async_session_factory
+from app.repositories.snapshot import SnapshotRepository
+from app.repositories.tracked_page import TrackedPageRepository
+from app.services.page_checker import PageCheckerService
+from app.worker.fetcher import PageFetcher
 
 
 async def run_page_check_job() -> None:

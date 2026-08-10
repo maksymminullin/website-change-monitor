@@ -1,6 +1,7 @@
-from models.snapshot import Snapshot
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.snapshot import Snapshot
 
 
 class SnapshotRepository:

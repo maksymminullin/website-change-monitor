@@ -1,8 +1,9 @@
-from models.tracked_page import TrackedPage
-from schemas.tracked_page import TrackedPageCreate, TrackedPageUpdate
 from sqlalchemy import select
 from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.tracked_page import TrackedPage
+from app.schemas.tracked_page import TrackedPageCreate, TrackedPageUpdate
 
 
 class TrackedPageRepository:

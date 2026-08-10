@@ -1,11 +1,12 @@
 from typing import Annotated
 
-from core.database import get_db_session
 from fastapi import Depends
-from repositories.snapshot import SnapshotRepository
-from repositories.tracked_page import TrackedPageRepository
-from services.snapshot import SnapshotService
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.database import get_db_session
+from app.repositories.snapshot import SnapshotRepository
+from app.repositories.tracked_page import TrackedPageRepository
+from app.services.snapshot import SnapshotService
 
 
 def get_snapshot_service(

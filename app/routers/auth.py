@@ -1,16 +1,14 @@
-import logging
 from typing import Annotated
 
-from dependencies.auth import get_auth_service
-from exceptions.auth import InvalidCredentialsError, InvalidRefreshTokenError
-from exceptions.user import UserAlreadyExistsError
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
-from schemas.auth import RefreshTokenRequest, TokenResponse
-from schemas.user import UserCreate
-from services.auth import AuthService
 
-logger = logging.getLogger(__name__)
+from app.dependencies.auth import get_auth_service
+from app.exceptions.auth import InvalidCredentialsError, InvalidRefreshTokenError
+from app.exceptions.user import UserAlreadyExistsError
+from app.schemas.auth import RefreshTokenRequest, TokenResponse
+from app.schemas.user import UserCreate
+from app.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 

@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="corporate">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Website Monitor</title>
+        <link href="/static/css/app.css" rel="stylesheet">
+        <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+        <script src="https://unpkg.com/lucide@latest"></script>
+        <script src="/static/js/main.js" defer></script>
+    </head>
+<body class="min-h-screen bg-base-200">
+
+    {% if user %}
+
+    <div class="navbar bg-base-100 shadow-sm mb-8 px-4">
+        <div class="flex-1">
+            <a href="/" class="text-xl font-bold">Monitor</a>
+        </div>
+        <div class="flex-none gap-4 flex items-center">
+
+            <a href="/" class="btn btn-sm btn-ghost {% if active_page == 'add' %}btn-active{% endif %}">Add</a>
+            <a href="/list" class="btn btn-sm btn-ghost {% if active_page == 'list' %}btn-active{% endif %}">List</a>
+
+
+            <div class="flex items-center gap-3 ml-2 border-l border-base-300 pl-4">
+                <span class="text-sm font-medium">{{ user.username }}</span>
+
+
+                <button hx-post="/api/v1/auth/logout" hx-target="body" class="btn btn-sm btn-ghost text-error" title="Log out">
+                    <i data-lucide="log-out" class="w-4 h-4"></i>
+                    Log out
+                </button>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+
+    <main class="container mx-auto px-4 max-w-4xl pb-8">
+        {% block content %}{% endblock %}
+    </main>
+
+</body>
+</html>

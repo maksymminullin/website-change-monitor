@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="mb-8 flex justify-between items-center">
+    <h1 class="text-3xl font-bold">Tracked Pages</h1>
+    <a href="/" class="btn btn-primary btn-sm">
+        <i data-lucide="plus" class="w-4 h-4"></i> Add New
+    </a>
+</div>
+
+<div id="pages-list" class="flex flex-col gap-4">
+
+    {% for page in pages %}
+
+    <div class="card shadow-sm border border-base-300 transition-all duration-300
+                {% if page.status == 'archived' %}order-last opacity-60 bg-base-200{% else %}bg-base-100{% endif %}">
+        <div class="card-body p-4 flex-row items-center justify-between">
+
+            <div class="flex-1 overflow-hidden cursor-pointer" onclick="openSnapshotModal('{{ page.id }}', '{{ page.url }}')">
+                <h2 class="card-title text-lg truncate hover:text-primary transition-colors" title="{{ page.url }}">
+                    {{ page.url }}
+                </h2>
+                <p class="text-sm text-base-content/60 mt-1">
+                    Last snapshot: <span class="font-mono">{{ page.last_checked_at or 'Never' }}</span>
+                </p>
+            </div>
+
+            <div class="flex-none flex gap-2 ml-4">
+
+                {% if page.status != 'archived' %}
+                <button class="btn btn-sm btn-outline" title="Archive"
+                        hx-patch="/api/v1/tracked-pages/{{ page.id }}"
+                        hx-vals='{"status": "archived"}'
+                        hx-swap="none">
+                    <i data-lucide="archive" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Archive</span>
+                </button>
+                {% else %}
+                <button class="btn btn-sm btn-outline" title="Activate"
+                        hx-patch="/api/v1/tracked-pages/{{ page.id }}"
+                        hx-vals='{"status": "active"}'
+                        hx-swap="none">
+                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Activate</span>
+                </button>
+                {% endif %}
+
+                <button class="btn btn-sm btn-outline btn-error" title="Delete"
+                        hx-delete="/api/v1/tracked-pages/{{ page.id }}"
+                        hx-target="closest .card"
+                        hx-swap="outerHTML"
+                        hx-confirm="Are you sure you want to delete this page?">
+                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+        </div>
+    </div>
+    {% else %}
+    <div class="text-center py-12 border-2 border-dashed border-base-300 rounded-box">
+        <i data-lucide="inbox" class="w-12 h-12 mx-auto text-base-content/30 mb-3"></i>
+        <h3 class="text-lg font-medium">No pages tracked yet</h3>
+        <p class="text-base-content/60">Go to the 'Add' page to start monitoring websites.</p>
+    </div>
+    {% endfor %}
+
+</div>
+
+
+<dialog id="snapshot_modal" class="modal">
+  <div class="modal-box w-11/12 max-w-5xl h-[80vh] flex flex-col">
+
+    <div class="flex justify-between items-center mb-4 border-b border-base-300 pb-2">
+        <div>
+            <h3 class="font-bold text-lg" id="modal-url">https://example.com</h3>
+            <span class="text-sm text-base-content/60">Snapshot <span id="current-snapshot-num">1</span> of <span id="total-snapshots">5</span></span>
+        </div>
+        <form method="dialog">
+            <button class="btn btn-sm btn-circle btn-ghost">✕</button>
+        </form>
+    </div>
+
+    <div class="flex-1 bg-base-200 rounded-box p-4 overflow-y-auto">
+        <p id="snapshot-text" class="whitespace-pre-wrap font-mono text-sm">
+            Select a page to view its snapshots...
+        </p>
+    </div>
+
+    <div class="modal-action mt-4 flex justify-between items-center w-full">
+        <button class="btn btn-outline" id="btn-prev">
+            <i data-lucide="arrow-left" class="w-4 h-4"></i> Previous
+        </button>
+
+        <span class="text-sm font-medium" id="snapshot-date">...</span>
+
+        <button class="btn btn-outline" id="btn-next">
+            Next <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+    </div>
+
+  </div>
+
+  <form method="dialog" class="modal-backdrop">
+    <button>close</button>
+  </form>
+</dialog>
+{% endblock %}

@@ -27,23 +27,21 @@
 
             <div class="flex-none flex gap-2 ml-4">
 
-                {% if page.status != 'archived' %}
-                <button class="btn btn-sm btn-outline" title="Archive"
-                        hx-patch="/api/v1/tracked-pages/{{ page.id }}"
-                        hx-vals='{"status": "archived"}'
-                        hx-swap="none">
-                        <i data-lucide="archive" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Archive</span>
-                </button>
-                {% else %}
-                <button class="btn btn-sm btn-outline" title="Activate"
-                        hx-patch="/api/v1/tracked-pages/{{ page.id }}"
-                        hx-vals='{"status": "active"}'
-                        hx-swap="none">
+                {# Кнопка завжди є, тільки її текст і значення змінюються від status #}
+                <button
+                    class="btn btn-sm btn-outline"
+                    title="{% if page.status == 'archived' %}Activate{% else %}Archive{% endif %}"
+                    hx-patch="/api/v1/tracked-pages/{{ page.id }}"
+                    hx-vals='{"status": "{% if page.status == 'archived' %}active{% else %}archived{% endif %}"}'
+                    hx-swap="none">
+                    {% if page.status == 'archived' %}
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
                         <span class="hidden sm:inline">Activate</span>
+                    {% else %}
+                        <i data-lucide="archive" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Archive</span>
+                    {% endif %}
                 </button>
-                {% endif %}
 
                 <button class="btn btn-sm btn-outline btn-error flex items-center justify-center gap-2 uppercase"
                         title="Delete"

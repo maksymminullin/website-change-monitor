@@ -91,3 +91,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 });
+
+
+document.addEventListener('htmx:afterRequest', (event) => {
+
+    const elt = event.target;
+
+
+
+    if (!elt.matches('button[data-archive-action]')) return;
+
+
+    if (!event.detail.successful) return;
+
+    const action = elt.dataset.archiveAction;
+    const card = elt.closest('.card');
+    if (!card) return;
+
+    if (action === 'archive') {
+
+        card.classList.remove('bg-base-100');
+        card.classList.add('opacity-60', 'bg-base-200', 'order-last');
+    } else if (action === 'activate') {
+
+        card.classList.remove('opacity-60', 'bg-base-200', 'order-last');
+        card.classList.add('bg-base-100');
+    }
+});

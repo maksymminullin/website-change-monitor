@@ -59,7 +59,6 @@ async def get_all_tracked_pages(
 @router.patch("/{page_id}", response_model=TrackedPageRead)
 async def update_tracked_page(
     request: Request,
-    response: Response,
     page_id: int,
     current_user: Annotated[User, Depends(get_current_user)],
     service: Annotated[TrackedPageService, Depends(get_tracked_page_service)],
@@ -79,10 +78,12 @@ async def update_tracked_page(
         )
 
         if request.headers.get("hx-request"):
-            response.headers["HX-Refresh"] = "true"
-            return HTMLResponse("")
+            resp = HTMLResponse("")
+            resp.headers["HX-Refresh"] = "true"
+            return resp
 
         return updated_page
+
     except TrackedPageNotFoundError as e:
         raise HTTPException(status_code=404, detail=str(e)) from e
 

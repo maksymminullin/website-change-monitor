@@ -38,5 +38,10 @@ class TrackedPageService:
         page = await self.repository.get_by_id(user_id=user_id, page_id=page_id)
         if page is None:
             raise TrackedPageNotFoundError("Tracked page not found")
+
         updated_page = await self.repository.update(page=page, page_in=page_in)
+
+        await self.repository.session.commit()
+        await self.repository.session.refresh(updated_page)
+
         return TrackedPageRead.model_validate(updated_page)

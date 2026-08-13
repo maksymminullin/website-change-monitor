@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.core.database import async_session_factory
@@ -26,6 +28,15 @@ async def run_page_check_job() -> None:
 def setup_scheduler() -> AsyncIOScheduler:
     scheduler = AsyncIOScheduler()
     scheduler.add_job(
-        run_page_check_job, "interval", minutes=60, id="check_pages", replace_existing=True
+        scheduler.add_job(
+            run_page_check_job,
+            "interval",
+            minutes=60,
+            id="check_pages",
+            replace_existing=True,
+            next_run_time=datetime.now(),
+            max_instances=1,
+            coalesce=True,
+        )
     )
     return scheduler

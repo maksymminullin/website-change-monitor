@@ -1,12 +1,10 @@
 import uuid
 
-import pytest
 from httpx import ASGITransport, AsyncClient
 
 from main import app
 
 
-@pytest.mark.asyncio
 async def test_full_auth_flow():
 
     test_username = f"testuser_{uuid.uuid4().hex[:6]}"
@@ -41,7 +39,6 @@ async def test_full_auth_flow():
         )
 
 
-@pytest.mark.asyncio
 async def test_register_short_password_returns_html_error():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:

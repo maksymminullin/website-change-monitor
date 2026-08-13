@@ -25,5 +25,5 @@ app = FastAPI(
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(web_router)
-app.include_router(auth_router, prefix="/api/v1", tags=["Auth"])
-app.include_router(tracked_page_router, prefix="/api/v1", tags=["Tracked Pages"])
+app.include_router(auth_router, prefix="/api/v1")
+app.include_router(tracked_page_router, prefix="/api/v1")

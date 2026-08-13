@@ -32,25 +32,27 @@
                         hx-patch="/api/v1/tracked-pages/{{ page.id }}"
                         hx-vals='{"status": "archived"}'
                         hx-swap="none">
-                    <i data-lucide="archive" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Archive</span>
+                        <i data-lucide="archive" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Archive</span>
                 </button>
                 {% else %}
                 <button class="btn btn-sm btn-outline" title="Activate"
                         hx-patch="/api/v1/tracked-pages/{{ page.id }}"
                         hx-vals='{"status": "active"}'
                         hx-swap="none">
-                    <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Activate</span>
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+                        <span class="hidden sm:inline">Activate</span>
                 </button>
                 {% endif %}
 
-                <button class="btn btn-sm btn-outline btn-error" title="Delete"
+                <button class="btn btn-sm btn-outline btn-error flex items-center justify-center gap-2 uppercase"
+                        title="Delete"
                         hx-delete="/api/v1/tracked-pages/{{ page.id }}"
                         hx-target="closest .card"
                         hx-swap="outerHTML"
                         hx-confirm="Are you sure you want to delete this page?">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
+                    <span class="hidden sm:inline">Delete</span>
                 </button>
             </div>
 

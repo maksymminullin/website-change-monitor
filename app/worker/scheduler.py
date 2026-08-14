@@ -31,7 +31,7 @@ def setup_scheduler() -> AsyncIOScheduler:
     scheduler.add_job(
         run_page_check_job,
         "interval",
-        minutes=1,
+        minutes=60,
         id="check_pages",
         replace_existing=True,
         next_run_time=datetime.now(),

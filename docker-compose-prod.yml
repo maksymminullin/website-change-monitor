@@ -2,19 +2,15 @@ services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
-    environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
-    ports:
-      - "5433:5432"
+    env_file:
+      - .env.production
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
       test:
         [
           "CMD-SHELL",
-          "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"
+          "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
         ]
       interval: 5s
       timeout: 5s
@@ -24,11 +20,9 @@ services:
   api:
     build: .
     restart: unless-stopped
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
-    ports:
-      - "8000:8000"
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers
     env_file:
-      - .env
+      - .env.production
     depends_on:
       db:
         condition: service_healthy
@@ -38,10 +32,25 @@ services:
     restart: unless-stopped
     command: python -m app.worker.main
     env_file:
-      - .env
+      - .env.production
     depends_on:
       db:
         condition: service_healthy
 
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+
 volumes:
   postgres_data:
+  caddy_data:
+  caddy_config:

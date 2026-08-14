@@ -1,11 +1,25 @@
 FROM python:3.12-slim
 
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/app/.venv/bin:$PATH"
+
 WORKDIR /app
 
-RUN pip install uv
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-COPY pyproject.toml uv.lock* ./
+COPY pyproject.toml uv.lock ./
 
-RUN uv pip install --system -r pyproject.toml
+RUN uv sync --frozen --no-dev --no-install-project
 
-COPY . .
+COPY app ./app
+COPY main.py ./main.py
+COPY alembic.ini ./alembic.ini
+COPY migrations ./migrations
+
+RUN uv sync --frozen --no-dev --no-editable
+
+RUN useradd --create-home appuser \
+    && chown -R appuser:appuser /app
+
+USER appuser

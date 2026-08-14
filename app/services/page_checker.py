@@ -13,14 +13,14 @@ class PageCheckerService:
     def __init__(
         self,
         session: AsyncSession,
+        fetcher: PageFetcher,
         tracked_page_repo: TrackedPageRepository,
         snapshot_repo: SnapshotRepository,
-        fetcher: PageFetcher,
     ):
         self.session = session
+        self.fetcher = fetcher
         self.tracked_page_repo = tracked_page_repo
         self.snapshot_repo = snapshot_repo
-        self.fetcher = fetcher
 
     async def check_page(self, page_id: int) -> None:
         page = await self.tracked_page_repo.get_by_id_internal(page_id)
@@ -33,6 +33,15 @@ class PageCheckerService:
             fetched_data = await self.fetcher.fetch(page.url)
         except PageFetchError:
             await self.tracked_page_repo.update_internal(page.id, last_checked_at=now)
+            await self.session.commit()
+            return
+
+        if not fetched_data.clean_text.strip():
+            await self.tracked_page_repo.update_internal(
+                page.id,
+                title=fetched_data.title,
+                last_checked_at=now,
+            )
             await self.session.commit()
             return
 

@@ -50,7 +50,7 @@ function renderSnapshot() {
 
     const snap = currentSnapshots[currentIndex];
 
-    document.getElementById('snapshot-text').textContent = snap.content || snap.text_content || 'No content available';
+    document.getElementById('snapshot-text').textContent = snap.content_text || 'No content available';
 
 
     const dateObj = new Date(snap.created_at);

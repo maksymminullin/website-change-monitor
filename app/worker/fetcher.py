@@ -12,11 +12,29 @@ class PageFetcher:
         self.timeout = timeout
 
     async def fetch(self, url: str) -> FetchedPage:
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/126.0.0.0 Safari/537.36"
+            ),
+            "Accept": (
+                "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                "image/avif,image/webp,*/*;q=0.8"
+            ),
+            "Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
+        }
+
         try:
-            async with httpx.AsyncClient(timeout=self.timeout) as client:
+            async with httpx.AsyncClient(
+                timeout=self.timeout,
+                headers=headers,
+                follow_redirects=True,
+            ) as client:
                 response = await client.get(url)
                 response.raise_for_status()
                 html = response.text
+
         except httpx.HTTPError as e:
             raise PageFetchError(f"Failed to fetch {url}: {str(e)}") from e
 
@@ -30,7 +48,6 @@ class PageFetcher:
             element.extract()
 
         clean_text = soup.get_text(separator=" ", strip=True)
-
         content_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
 
         return FetchedPage(

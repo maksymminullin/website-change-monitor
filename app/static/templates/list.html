@@ -16,12 +16,27 @@
                 {% if page.status == 'archived' %}order-last opacity-60 bg-base-200{% else %}bg-base-100{% endif %}">
         <div class="card-body p-4 flex-row items-center justify-between">
 
-            <div class="flex-1 overflow-hidden cursor-pointer" onclick="openSnapshotModal('{{ page.id }}', '{{ page.url }}')">
-                <h2 class="card-title text-lg truncate hover:text-primary transition-colors" title="{{ page.url }}">
-                    {{ page.url }}
+            <div class="flex-1 overflow-hidden cursor-pointer"
+                 onclick="openSnapshotModal('{{ page.id }}', '{{ page.url }}')">
+
+                <h2 class="card-title text-lg truncate hover:text-primary transition-colors"
+                    title="{% if page.title and page.title != 'No title' %}{{ page.title }}{% else %}{{ page.url }}{% endif %}">
+                    {% if page.title and page.title != 'No title' %}
+                        {{ page.title }}
+                    {% else %}
+                        {{ page.url }}
+                    {% endif %}
                 </h2>
+
+                {% if page.title and page.title != 'No title' %}
+                <p class="text-sm text-base-content/60 truncate mt-1" title="{{ page.url }}">
+                    {{ page.url }}
+                </p>
+                {% endif %}
+
                 <p class="text-sm text-base-content/60 mt-1">
-                    Last snapshot: <span class="font-mono">{{ page.last_checked_at or 'Never' }}</span>
+                    Last snapshot:
+                    <span class="font-mono">{{ page.last_checked_at or 'Never' }}</span>
                 </p>
             </div>
 
@@ -36,21 +51,21 @@
                     hx-swap="none">
                     {% if page.status == 'archived' %}
                         <i data-lucide="refresh-cw" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Activate</span>
+                        <span class="hidden sm:inline uppercase">Activate</span>
                     {% else %}
-                        <i data-lucide="archive" class="w-4 h-4"></i>
-                        <span class="hidden sm:inline">Archive</span>
+                        <i data-lucide="archive" class="w-4 h-4 "></i>
+                        <span class="hidden sm:inline uppercase">Archive</span>
                     {% endif %}
                 </button>
 
-                <button class="btn btn-sm btn-outline btn-error flex items-center justify-center gap-2 uppercase"
+                <button class="btn btn-sm btn-outline btn-error flex items-center justify-center gap-2 "
                         title="Delete"
                         hx-delete="/api/v1/tracked-pages/{{ page.id }}"
                         hx-target="closest .card"
                         hx-swap="outerHTML"
                         hx-confirm="Are you sure you want to delete this page?">
                     <i data-lucide="trash-2" class="w-4 h-4"></i>
-                    <span class="hidden sm:inline">Delete</span>
+                    <span class="hidden sm:inline uppercase">Delete</span>
                 </button>
             </div>
 

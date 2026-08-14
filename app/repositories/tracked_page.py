@@ -11,7 +11,9 @@ class TrackedPageRepository:
         self.session = session
 
     async def get_all_internal(self) -> list[TrackedPage]:
-        pages = await self.session.execute(select(TrackedPage))
+        pages = await self.session.execute(
+            select(TrackedPage).where(TrackedPage.status == "active")
+        )
         return list(pages.scalars().all())
 
     async def get_by_id_internal(self, page_id: int) -> TrackedPage | None:

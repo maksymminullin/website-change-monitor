@@ -1,10 +1,9 @@
-# Website Monitor
+# Website Сhange Monitor
+
 
 Website Monitor is a full-stack application for tracking changes on public web pages.
 
 Users can add URLs to monitor, browse saved content snapshots, archive pages to pause scheduled checks, and reactivate them when monitoring should resume. A separate background worker periodically fetches active pages and stores a new snapshot only when the extracted page content has changed.
-
-> Live demo will be added after production deployment.
 
 ## Features
 
@@ -58,31 +57,11 @@ flowchart LR
 
 ## Tech stack
 
-### Backend
+**Backend:** Python 3.12, FastAPI, SQLAlchemy Async ORM, PostgreSQL, Alembic, APScheduler, HTTPX, BeautifulSoup4, Pydantic
 
-- Python 3.12
-- FastAPI
-- SQLAlchemy Async ORM
-- PostgreSQL
-- Alembic
-- APScheduler
-- HTTPX
-- BeautifulSoup4
-- Pydantic
+**Frontend:** Jinja2 templates, HTMX, Tailwind CSS, daisyUI, Lucide icons
 
-### Frontend
-
-- Jinja2 templates
-- HTMX
-- Tailwind CSS
-- daisyUI
-- Lucide icons
-
-### Infrastructure
-
-- Docker
-- Docker Compose
-- uv
+**Infrastructure:** Docker, Docker Compose, uv
 
 ## Run locally
 
@@ -123,14 +102,6 @@ Open the application:
 ```text
 http://localhost:8000
 ```
-
-### Local services
-
-| Service | Address |
-|---|---|
-| Web application and API | `http://localhost:8000` |
-| PostgreSQL | `localhost:5433` |
-| Worker logs | `docker compose logs -f worker` |
 
 ## Test setup
 
@@ -201,16 +172,8 @@ The worker currently uses HTTPX and BeautifulSoup, so it can monitor websites th
 
 Websites that render content entirely in the browser with JavaScript can return empty or incomplete HTML to the worker. Browser-based rendering is not implemented yet.
 
-## Future improvements
+## TODO
 
-- Add a snapshot-diff view that highlights added and removed content between two snapshots, similar to GitHub's file-diff interface
+- Write automated tests
 - Add browser-based parsing with Playwright for JavaScript-rendered websites and complex single-page applications
-- Email or Telegram notifications when content changes
-- Public-URL validation and SSRF protection
-- Per-user limits and rate limiting
-- Automated tests and GitHub Actions CI
-- Production deployment with Caddy and HTTPS
-
-## Project goal
-
-This project was built as a portfolio project to demonstrate practical backend development skills: asynchronous Python, layered application design, database migrations, background processing, content-change detection, Docker-based infrastructure, and a simple server-rendered user interface.
+- Add a snapshot-diff view that highlights added and removed content between two snapshots, similar to GitHub's file-diff interface

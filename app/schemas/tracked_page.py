@@ -13,8 +13,11 @@ def normalize_url(raw_url: str) -> str:
         raise ValueError("URL must include scheme and domain, for example https://example.com")
 
     netloc = parsed.netloc.lower().rstrip("/")
-    path = parsed.path.rstrip("/") if parsed.path not in ("", "/") else ""
-    query = ""
+    if parsed.path in ("", "/"):
+        path = "" if not parsed.query else "/"
+    else:
+        path = parsed.path.rstrip("/")
+    query = parsed.query
     fragment = ""
     return parsed._replace(netloc=netloc, path=path, query=query, fragment=fragment).geturl()
 

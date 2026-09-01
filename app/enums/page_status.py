@@ -1,5 +1,6 @@
-from enum import Enum
+from enum import StrEnum
 
-class PageStatus(str, Enum):
+
+class PageStatus(StrEnum):
     ACTIVE = "active"
     ARCHIVED = "archived"

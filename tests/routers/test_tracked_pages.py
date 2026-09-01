@@ -64,9 +64,15 @@ async def test_create_tracked_page_already_exists():
 
 
 def test_normalize_url_preserves_query_string_and_canonicalizes_root_and_trailing_slash():
-    assert normalize_url(" https://EXAMPLE.com/?utm_source=ads ") == "https://example.com/?utm_source=ads"
+    assert (
+        normalize_url(" https://EXAMPLE.com/?utm_source=ads ")
+        == "https://example.com/?utm_source=ads"
+    )
     assert normalize_url("https://example.com/about/") == "https://example.com/about"
-    assert normalize_url("https://example.com/path?cat=1&id=2") == "https://example.com/path?cat=1&id=2"
+    assert (
+        normalize_url("https://example.com/path?cat=1&id=2")
+        == "https://example.com/path?cat=1&id=2"
+    )
 
 
 async def test_create_service_rejects_duplicate_after_url_normalization():

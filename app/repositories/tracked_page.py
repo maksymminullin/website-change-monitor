@@ -2,8 +2,9 @@ from sqlalchemy import select
 from sqlalchemy import update as sa_update
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.enums.page_status import PageStatus
 from app.models.tracked_page import TrackedPage
-from app.schemas.tracked_page import TrackedPageCreate, TrackedPageUpdate
+from app.schemas.tracked_page import TrackedPageCreate, TrackedPageUpdate, normalize_url
 
 
 class TrackedPageRepository:
@@ -12,7 +13,7 @@ class TrackedPageRepository:
 
     async def get_all_internal(self) -> list[TrackedPage]:
         pages = await self.session.execute(
-            select(TrackedPage).where(TrackedPage.status == "active")
+            select(TrackedPage).where(TrackedPage.status == PageStatus.ACTIVE)
         )
         return list(pages.scalars().all())
 
@@ -33,7 +34,8 @@ class TrackedPageRepository:
         return list(pages.scalars().all())
 
     async def create(self, user_id: int, page_in: TrackedPageCreate) -> TrackedPage:
-        page = TrackedPage(user_id=user_id, url=page_in.url, status="active")
+        normalized_url = normalize_url(page_in.url)
+        page = TrackedPage(user_id=user_id, url=normalized_url, status=PageStatus.ACTIVE)
         self.session.add(page)
         return page
 

@@ -1,12 +1,12 @@
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
-from app.core.config import get_setting
+from app.core.config import get_settings
 from app.routers.auth import router as auth_router
 from app.routers.tracked_page import router as tracked_page_router
 from app.routers.web import router as web_router
 
-settings = get_setting()
+settings = get_settings()
 
 app = FastAPI(
     title=settings.app_name,

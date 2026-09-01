@@ -4,7 +4,9 @@ from typing import Any
 import jwt
 from pwdlib import PasswordHash
 
-from app.core.config import settings
+from app.core.config import get_settings
+
+settings = get_settings()
 
 password_hash = PasswordHash.recommended()
 

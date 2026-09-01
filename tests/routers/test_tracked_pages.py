@@ -5,9 +5,9 @@ from httpx import ASGITransport, AsyncClient
 
 from app.dependencies.auth import get_current_user
 from app.dependencies.tracked_page import get_tracked_page_service
+from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
 from app.models.user import User
 from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead
-from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
 from main import app
 
 

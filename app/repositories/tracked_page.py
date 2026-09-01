@@ -33,6 +33,12 @@ class TrackedPageRepository:
         )
         return list(pages.scalars().all())
 
+    async def get_by_user_id_and_url(self, user_id: int, url: str) -> TrackedPage | None:
+        page = await self.session.execute(
+            select(TrackedPage).where(TrackedPage.user_id == user_id, TrackedPage.url == url)
+        )
+        return page.scalar_one_or_none()
+
     async def create(self, user_id: int, page_in: TrackedPageCreate) -> TrackedPage:
         normalized_url = normalize_url(page_in.url)
         page = TrackedPage(user_id=user_id, url=normalized_url, status=PageStatus.ACTIVE)

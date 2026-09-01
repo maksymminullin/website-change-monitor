@@ -7,7 +7,7 @@ from app.dependencies.auth import get_current_user
 from app.dependencies.tracked_page import get_tracked_page_service
 from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
 from app.models.user import User
-from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead
+from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, normalize_url
 from main import app
 
 
@@ -61,3 +61,28 @@ async def test_create_tracked_page_already_exists():
     assert response.json()["detail"] == "tracked page already exists"
 
     app.dependency_overrides.clear()
+
+
+def test_normalize_url_preserves_query_string_and_canonicalizes_root_and_trailing_slash():
+    assert normalize_url(" https://EXAMPLE.com/?utm_source=ads ") == "https://example.com/?utm_source=ads"
+    assert normalize_url("https://example.com/about/") == "https://example.com/about"
+    assert normalize_url("https://example.com/path?cat=1&id=2") == "https://example.com/path?cat=1&id=2"
+
+
+async def test_create_service_rejects_duplicate_after_url_normalization():
+    repo = AsyncMock()
+    session = AsyncMock()
+    from app.services.tracked_page import TrackedPageService
+    from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
+
+    service = TrackedPageService(repository=repo, session=session)
+    repo.get_by_user_id_and_url.return_value = object()
+
+    try:
+        await service.create(
+            user_id=1,
+            page_in=TrackedPageCreate(url="https://EXAMPLE.com/?utm_source=ads"),
+        )
+        raise AssertionError("Expected TrackedPageAlreadyExistsError")
+    except TrackedPageAlreadyExistsError:
+        pass

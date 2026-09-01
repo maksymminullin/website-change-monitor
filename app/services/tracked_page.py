@@ -3,7 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.exceptions.tracked_page import TrackedPageAlreadyExistsError, TrackedPageNotFoundError
 from app.repositories.tracked_page import TrackedPageRepository
-from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
+from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate, normalize_url
 
 
 class TrackedPageService:
@@ -16,6 +16,11 @@ class TrackedPageService:
         return [TrackedPageRead.model_validate(page) for page in pages]
 
     async def create(self, user_id: int, page_in: TrackedPageCreate) -> TrackedPageRead:
+        normalized_url = normalize_url(page_in.url)
+        existing_page = await self.repository.get_by_user_id_and_url(user_id=user_id, url=normalized_url)
+        if existing_page is not None:
+            raise TrackedPageAlreadyExistsError("You already track this URL")
+
         try:
             page = await self.repository.create(user_id=user_id, page_in=page_in)
             await self.repository.session.commit()

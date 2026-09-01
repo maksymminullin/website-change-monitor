@@ -70,10 +70,11 @@ def test_normalize_url_preserves_query_string_and_canonicalizes_root_and_trailin
 
 
 async def test_create_service_rejects_duplicate_after_url_normalization():
+    from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
+    from app.services.tracked_page import TrackedPageService
+
     repo = AsyncMock()
     session = AsyncMock()
-    from app.services.tracked_page import TrackedPageService
-    from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
 
     service = TrackedPageService(repository=repo, session=session)
     repo.get_by_user_id_and_url.return_value = object()

@@ -48,13 +48,15 @@ jobs:
           uv run ruff format --check .
 
       - name: Run migrations
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:mysecretpassword@localhost:5433/monitor_test_db
         run: |
-          set -a
-          source .env.test
-          set +a
           uv run alembic upgrade head
 
       - name: Run tests
+        env:
+          DATABASE_URL: postgresql+asyncpg://postgres:mysecretpassword@localhost:5433/monitor_test_db
+          JWT_SECRET_KEY: test_secret_key_for_ci
         run: |
           uv run pytest
 

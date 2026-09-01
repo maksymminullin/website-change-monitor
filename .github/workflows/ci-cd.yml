@@ -50,6 +50,8 @@ jobs:
       - name: Run migrations
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:mysecretpassword@localhost:5433/monitor_test_db
+          JWT_SECRET_KEY: test_secret_key_for_ci
+          JWT_REFRESH_SECRET_KEY: test_refresh_key_for_ci
         run: |
           uv run alembic upgrade head
 
@@ -57,6 +59,7 @@ jobs:
         env:
           DATABASE_URL: postgresql+asyncpg://postgres:mysecretpassword@localhost:5433/monitor_test_db
           JWT_SECRET_KEY: test_secret_key_for_ci
+          JWT_REFRESH_SECRET_KEY: test_refresh_key_for_ci
         run: |
           uv run pytest
 

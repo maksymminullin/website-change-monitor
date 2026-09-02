@@ -32,7 +32,6 @@ class PageCheckerService:
             logger.warning(f"Page {page_id} not found during check")
             return
 
-        # Skip if page is archived
         if page.status != PageStatus.ACTIVE:
             logger.debug(f"Skipping page {page_id} with status {page.status}")
             return
@@ -92,7 +91,6 @@ class PageCheckerService:
         tasks = [self.check_page(page.id) for page in pages]
         results = await asyncio.gather(*tasks, return_exceptions=True)
         
-        # Log any exceptions that occurred
         error_count = sum(1 for r in results if isinstance(r, Exception))
         if error_count:
             logger.warning(f"Check cycle completed with {error_count} errors")

@@ -17,6 +17,8 @@ Users can add URLs to monitor, browse saved content snapshots, archive pages to 
 - **Clean API:** Strict separation between the HTMX-driven Web UI layer and the pure JSON REST API.
 - **CI/CD:** Fully automated testing and linting via GitHub Actions.
 
+- **JavaScript Rendering:** Uses Playwright to automatically detect and fully render JavaScript-heavy websites (SPAs) while falling back to lightning-fast HTTPX for static pages to conserve memory.
+
 ## Architecture
 
 The project uses a layered architecture with clear separation between the UI, API, Service, and Data Access layers.
@@ -175,4 +177,4 @@ uv run ruff format .
 
 ## Limitations & Future Plans
 
-- **JavaScript Rendering:** The worker currently uses HTTPX and BeautifulSoup, meaning it only parses the initial HTML payload. Sites relying heavily on client-side JS rendering (SPAs) are not fully supported yet.
+- **Scalability:** The current `APScheduler` implementation runs entirely in a single container. For highly scaled workloads, this should be decoupled into a distributed queue system like Celery or RQ backed by Redis.

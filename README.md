@@ -56,14 +56,14 @@ flowchart LR
 
 ---
 
-## 🛠 Prerequisites
+## Prerequisites
 
 To run and develop this project locally, you need the following tools installed on your machine:
 1. **[Git](https://git-scm.com/downloads)** - For version control.
 2. **[Docker](https://docs.docker.com/get-docker/)** - To run the application containers.
 3. **[Docker Compose](https://docs.docker.com/compose/install/)** - To orchestrate the API, Worker, and Database.
 
-## 🚀 Run locally
+## Run locally
 
 ### 1. Clone the repository
 
@@ -104,7 +104,7 @@ The application is now running. Open your browser and navigate to:
 
 ---
 
-## 📋 Useful Commands (Logs, DB, etc.)
+## Useful Commands (Logs, DB, etc.)
 
 **View all logs in real-time:**
 ```bash
@@ -135,7 +135,7 @@ docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 
 ---
 
-## 🧪 Testing & CI/CD
+## Testing & CI/CD
 
 This project uses **Pytest** for testing and **GitHub Actions** for Continuous Integration. Every push to the `main` branch triggers the CI pipeline which:
 1. Lints and formats the code using `ruff`.

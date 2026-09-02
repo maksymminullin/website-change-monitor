@@ -13,7 +13,9 @@ class TrackedPage(Base):
     __table_args__ = (UniqueConstraint("user_id", "url", name="uq_tracked_pages_user_url"),)
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    user_id: Mapped[int] = mapped_column(ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
     url: Mapped[str] = mapped_column(String(2048), nullable=False)
     requires_js: Mapped[bool] = mapped_column(
         Boolean, default=False, nullable=False, server_default="false"

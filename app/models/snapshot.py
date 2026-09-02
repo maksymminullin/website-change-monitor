@@ -11,7 +11,7 @@ class Snapshot(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     tracked_page_id: Mapped[int] = mapped_column(
-        ForeignKey("tracked_pages.id"), nullable=False, index=True
+        ForeignKey("tracked_pages.id", ondelete="CASCADE"), nullable=False, index=True
     )
     content_hash: Mapped[str] = mapped_column(String, nullable=False)
     content_text: Mapped[str] = mapped_column(String, nullable=False)

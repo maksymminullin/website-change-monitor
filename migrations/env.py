@@ -8,6 +8,9 @@ from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from app.core.config import get_settings
 from app.models.base import Base
+from app.models.snapshot import Snapshot  # noqa
+from app.models.tracked_page import TrackedPage  # noqa
+from app.models.user import User  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.

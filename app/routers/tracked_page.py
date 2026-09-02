@@ -6,7 +6,6 @@ from fastapi.responses import HTMLResponse
 from app.dependencies.auth import get_current_user
 from app.dependencies.snapshot import get_snapshot_service
 from app.dependencies.tracked_page import get_tracked_page_service
-from app.exceptions.tracked_page import TrackedPageAlreadyExistsError, TrackedPageNotFoundError
 from app.models.user import User
 from app.schemas.snapshot import SnapshotRead
 from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
@@ -30,15 +29,7 @@ async def create_tracked_page(
         raise HTTPException(status_code=400, detail="URL is required")
 
     create_schema = TrackedPageCreate(url=target_url)
-
-    try:
-        result = await service.create(user_id=current_user.id, page_in=create_schema)
-    except TrackedPageAlreadyExistsError as e:
-        if request.headers.get("hx-request"):
-            return HTMLResponse(
-                f"<div class='alert alert-warning mt-4'>{str(e)}</div>", status_code=409
-            )
-        raise HTTPException(status_code=status.HTTP_409_CONFLICT, detail=str(e)) from e
+    result = await service.create(user_id=current_user.id, page_in=create_schema)
 
     if request.headers.get("hx-request"):
         return HTMLResponse(
@@ -72,20 +63,16 @@ async def update_tracked_page(
     if not update_data:
         raise HTTPException(status_code=400, detail="No update data provided")
 
-    try:
-        updated_page = await service.update(
-            user_id=current_user.id, page_id=page_id, page_in=update_data
-        )
+    updated_page = await service.update(
+        user_id=current_user.id, page_id=page_id, page_in=update_data
+    )
 
-        if request.headers.get("hx-request"):
-            resp = HTMLResponse("")
-            resp.headers["HX-Refresh"] = "true"
-            return resp
+    if request.headers.get("hx-request"):
+        resp = HTMLResponse("")
+        resp.headers["HX-Refresh"] = "true"
+        return resp
 
-        return updated_page
-
-    except TrackedPageNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e)) from e
+    return updated_page
 
 
 @router.delete("/{page_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -95,10 +82,7 @@ async def delete_tracked_page(
     current_user: Annotated[User, Depends(get_current_user)],
     service: Annotated[TrackedPageService, Depends(get_tracked_page_service)],
 ) -> Response:
-    try:
-        await service.delete(user_id=current_user.id, page_id=page_id)
-    except TrackedPageNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    await service.delete(user_id=current_user.id, page_id=page_id)
 
     if request.headers.get("hx-request"):
         return HTMLResponse("")
@@ -112,7 +96,4 @@ async def get_all_snapshots(
     current_user: Annotated[User, Depends(get_current_user)],
     service: Annotated[SnapshotService, Depends(get_snapshot_service)],
 ) -> list[SnapshotRead]:
-    try:
-        return await service.get_all(user_id=current_user.id, tracked_page_id=page_id)
-    except TrackedPageNotFoundError as e:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e)) from e
+    return await service.get_all(user_id=current_user.id, tracked_page_id=page_id)

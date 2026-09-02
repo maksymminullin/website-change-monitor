@@ -32,11 +32,18 @@ async def validation_exception_handler(
     exc: RequestValidationError,
 ) -> JSONResponse:
     logger.warning(f"Validation error for {request.method} {request.url.path}: {exc}")
+    errors = []
+    for error in exc.errors():
+        err = dict(error)
+        if "input" in err and isinstance(err["input"], bytes):
+            err["input"] = err["input"].decode(errors="replace")
+        errors.append(err)
+
     return JSONResponse(
         status_code=422,
         content={
             "detail": "Invalid request data",
-            "errors": exc.errors(),
+            "errors": errors,
         },
     )
 

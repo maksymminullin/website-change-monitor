@@ -38,7 +38,7 @@ async def test_create_tracked_page_success():
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        response = await client.post("/api/v1/tracked-pages", data={"url": "https://example.com"})
+        response = await client.post("/api/v1/tracked-pages", json={"url": "https://example.com"})
 
     assert response.status_code == 201
     assert response.json()["id"] == 10
@@ -66,7 +66,7 @@ async def test_create_tracked_page_already_exists():
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        response = await client.post("/api/v1/tracked-pages", data={"url": "https://example.com"})
+        response = await client.post("/api/v1/tracked-pages", json={"url": "https://example.com"})
 
     assert response.status_code == 409
     assert response.json()["detail"] == "tracked page already exists"
@@ -115,10 +115,9 @@ async def test_create_tracked_page_missing_url():
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        response = await client.post("/api/v1/tracked-pages", data={})
+        response = await client.post("/api/v1/tracked-pages", json={})
 
-    assert response.status_code == 400
-    assert "URL is required" in response.json()["detail"]
+    assert response.status_code == 422
     mock_service.create.assert_not_called()
 
     app.dependency_overrides.clear()
@@ -139,9 +138,8 @@ async def test_create_tracked_page_htmx_success():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.post(
-            "/api/v1/tracked-pages",
+            "/tracked-pages",
             data={"url": "https://example.com"},
-            headers={"HX-Request": "true"},
         )
 
     assert response.status_code == 200
@@ -162,12 +160,12 @@ async def test_create_tracked_page_htmx_duplicate():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.post(
-            "/api/v1/tracked-pages",
+            "/tracked-pages",
             data={"url": "https://example.com"},
-            headers={"HX-Request": "true"},
         )
 
-    assert response.status_code == 409
+    assert response.status_code == 200
+    assert "Page already tracked" in response.text
 
     app.dependency_overrides.clear()
 
@@ -240,12 +238,11 @@ async def test_update_tracked_page_status():
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.patch(
             "/api/v1/tracked-pages/10",
-            data={"status": "archived"},
-            headers={"HX-Request": "true"},
+            json={"status": "archived"},
         )
 
     assert response.status_code == 200
-    assert response.headers.get("HX-Refresh") == "true"
+    assert response.json()["status"] == "archived"
 
     call_kwargs = mock_service.update.call_args.kwargs
     assert call_kwargs["user_id"] == 1
@@ -270,9 +267,8 @@ async def test_update_tracked_page_htmx():
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.patch(
-            "/api/v1/tracked-pages/10",
+            "/tracked-pages/10",
             data={"status": "archived"},
-            headers={"HX-Request": "true"},
         )
 
     assert response.status_code == 200
@@ -293,8 +289,7 @@ async def test_update_tracked_page_not_found():
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         response = await client.patch(
             "/api/v1/tracked-pages/999",
-            data={"status": "archived"},
-            headers={"HX-Request": "true"},
+            json={"status": "archived"},
         )
 
     assert response.status_code == 404
@@ -311,10 +306,9 @@ async def test_update_tracked_page_no_data():
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        response = await client.patch("/api/v1/tracked-pages/10", data={})
+        response = await client.patch("/api/v1/tracked-pages/10", json={})
 
-    assert response.status_code == 400
-    assert "No update data provided" in response.json()["detail"]
+    assert response.status_code == 422
     mock_service.update.assert_not_called()
 
     app.dependency_overrides.clear()
@@ -346,7 +340,7 @@ async def test_delete_tracked_page_htmx():
 
     transport = ASGITransport(app=app)
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
-        response = await client.delete("/api/v1/tracked-pages/10", headers={"HX-Request": "true"})
+        response = await client.delete("/tracked-pages/10")
 
     assert response.status_code == 200
     assert response.text == ""

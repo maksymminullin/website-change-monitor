@@ -34,9 +34,14 @@ async def web_login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
+    from app.exceptions.auth import InvalidCredentialsError
     try:
         token_data = await auth_service.login(
             username=form_data.username, password=form_data.password
+        )
+    except InvalidCredentialsError as e:
+        return HTMLResponse(
+            f"<span class='text-error'>{e}</span>", status_code=status.HTTP_200_OK
         )
     except HTTPException as e:
         return HTMLResponse(
@@ -56,9 +61,14 @@ async def web_register(
     password: Annotated[str, Form()],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
+    from app.exceptions.user import UserAlreadyExistsError
     try:
         user_in = UserCreate(username=username, password=password)
         token_data = await auth_service.register(user_in)
+    except UserAlreadyExistsError as e:
+        return HTMLResponse(
+            f"<span class='text-error'>{e}</span>", status_code=status.HTTP_200_OK
+        )
     except ValidationError:
         error_msg = (
             "Invalid input: Username must be at least 3 characters "
@@ -105,12 +115,16 @@ async def web_add_tracked_page(
     if not url:
         return HTMLResponse("<div class='alert alert-error mt-4'>URL is required</div>")
 
+    from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
+
     try:
         create_schema = TrackedPageCreate(url=url)
         result = await service.create(user_id=current_user.id, page_in=create_schema)
         return HTMLResponse(
             f"<div class='alert alert-success mt-4'>Page {result.url} successfully added</div>"
         )
+    except TrackedPageAlreadyExistsError as e:
+        return HTMLResponse(f"<div class='alert alert-error mt-4'>{e}</div>")
     except HTTPException as e:
         return HTMLResponse(f"<div class='alert alert-error mt-4'>{e.detail}</div>")
 

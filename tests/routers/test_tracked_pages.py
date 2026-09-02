@@ -4,10 +4,20 @@ from unittest.mock import AsyncMock
 from httpx import ASGITransport, AsyncClient
 
 from app.dependencies.auth import get_current_user
+from app.dependencies.snapshot import get_snapshot_service
 from app.dependencies.tracked_page import get_tracked_page_service
-from app.exceptions.tracked_page import TrackedPageAlreadyExistsError
+from app.exceptions.tracked_page import (
+    TrackedPageAlreadyExistsError,
+    TrackedPageNotFoundError,
+)
 from app.models.user import User
-from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, normalize_url
+from app.schemas.snapshot import SnapshotRead
+from app.schemas.tracked_page import (
+    TrackedPageCreate,
+    TrackedPageRead,
+    TrackedPageUpdate,
+    normalize_url,
+)
 from main import app
 
 
@@ -93,3 +103,359 @@ async def test_create_service_rejects_duplicate_after_url_normalization():
         raise AssertionError("Expected TrackedPageAlreadyExistsError")
     except TrackedPageAlreadyExistsError:
         pass
+
+
+async def test_create_tracked_page_missing_url():
+    """Test creating page without URL returns 400."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.post("/api/v1/tracked-pages", data={})
+
+    assert response.status_code == 400
+    assert "URL is required" in response.json()["detail"]
+    mock_service.create.assert_not_called()
+
+    app.dependency_overrides.clear()
+
+
+async def test_create_tracked_page_htmx_success():
+    """Test creating page with HTMX request returns HTML."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    fake_created_page = TrackedPageRead(
+        id=10, url="https://example.com", status="active", created_at=datetime.now(UTC)
+    )
+
+    mock_service = AsyncMock()
+    mock_service.create.return_value = fake_created_page
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.post(
+            "/api/v1/tracked-pages",
+            data={"url": "https://example.com"},
+            headers={"HX-Request": "true"},
+        )
+
+    assert response.status_code == 200
+    assert "alert alert-success" in response.text
+    assert "https://example.com" in response.text
+
+    app.dependency_overrides.clear()
+
+
+async def test_create_tracked_page_htmx_duplicate():
+    """Test creating duplicate page with HTMX returns HTML error."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+    mock_service.create.side_effect = TrackedPageAlreadyExistsError("Page already tracked")
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.post(
+            "/api/v1/tracked-pages",
+            data={"url": "https://example.com"},
+            headers={"HX-Request": "true"},
+        )
+
+    assert response.status_code == 409
+
+    app.dependency_overrides.clear()
+
+
+async def test_get_all_tracked_pages():
+    """Test retrieving all tracked pages for a user."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    fake_pages = [
+        TrackedPageRead(
+            id=1, url="https://example1.com", status="active", created_at=datetime.now(UTC)
+        ),
+        TrackedPageRead(
+            id=2, url="https://example2.com", status="archived", created_at=datetime.now(UTC)
+        ),
+    ]
+
+    mock_service = AsyncMock()
+    mock_service.get_all.return_value = fake_pages
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/api/v1/tracked-pages")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["url"] == "https://example1.com"
+    assert data[0]["status"] == "active"
+    assert data[1]["url"] == "https://example2.com"
+    assert data[1]["status"] == "archived"
+
+    mock_service.get_all.assert_called_once_with(user_id=1)
+
+    app.dependency_overrides.clear()
+
+
+async def test_get_all_tracked_pages_empty():
+    """Test retrieving tracked pages when none exist."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+    mock_service.get_all.return_value = []
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/api/v1/tracked-pages")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+    app.dependency_overrides.clear()
+
+
+async def test_update_tracked_page_status():
+    """Test updating page status via HTMX form data."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    updated_page = TrackedPageRead(
+        id=10, url="https://example.com", status="archived", created_at=datetime.now(UTC)
+    )
+
+    mock_service = AsyncMock()
+    mock_service.update.return_value = updated_page
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.patch(
+            "/api/v1/tracked-pages/10",
+            data={"status": "archived"},
+            headers={"HX-Request": "true"},
+        )
+
+    assert response.status_code == 200
+    assert response.headers.get("HX-Refresh") == "true"
+
+    call_kwargs = mock_service.update.call_args.kwargs
+    assert call_kwargs["user_id"] == 1
+    assert call_kwargs["page_id"] == 10
+    assert isinstance(call_kwargs["page_in"], TrackedPageUpdate)
+
+    app.dependency_overrides.clear()
+
+
+async def test_update_tracked_page_htmx():
+    """Test updating page with HTMX request returns refresh."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    updated_page = TrackedPageRead(
+        id=10, url="https://example.com", status="archived", created_at=datetime.now(UTC)
+    )
+
+    mock_service = AsyncMock()
+    mock_service.update.return_value = updated_page
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.patch(
+            "/api/v1/tracked-pages/10",
+            data={"status": "archived"},
+            headers={"HX-Request": "true"},
+        )
+
+    assert response.status_code == 200
+    assert response.headers.get("HX-Refresh") == "true"
+
+    app.dependency_overrides.clear()
+
+
+async def test_update_tracked_page_not_found():
+    """Test updating non-existent page returns 404."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+    mock_service.update.side_effect = TrackedPageNotFoundError("Page not found")
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.patch(
+            "/api/v1/tracked-pages/999",
+            data={"status": "archived"},
+            headers={"HX-Request": "true"},
+        )
+
+    assert response.status_code == 404
+
+    app.dependency_overrides.clear()
+
+
+async def test_update_tracked_page_no_data():
+    """Test updating page with no data returns 400."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.patch("/api/v1/tracked-pages/10", data={})
+
+    assert response.status_code == 400
+    assert "No update data provided" in response.json()["detail"]
+    mock_service.update.assert_not_called()
+
+    app.dependency_overrides.clear()
+
+
+async def test_delete_tracked_page():
+    """Test deleting a tracked page."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.delete("/api/v1/tracked-pages/10")
+
+    assert response.status_code == 204
+    mock_service.delete.assert_called_once_with(user_id=1, page_id=10)
+
+    app.dependency_overrides.clear()
+
+
+async def test_delete_tracked_page_htmx():
+    """Test deleting page with HTMX request returns empty response."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.delete("/api/v1/tracked-pages/10", headers={"HX-Request": "true"})
+
+    assert response.status_code == 200
+    assert response.text == ""
+
+    app.dependency_overrides.clear()
+
+
+async def test_delete_tracked_page_not_found():
+    """Test deleting non-existent page returns 404."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+    mock_service.delete.side_effect = TrackedPageNotFoundError("Page not found")
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_tracked_page_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.delete("/api/v1/tracked-pages/999")
+
+    assert response.status_code == 404
+
+    app.dependency_overrides.clear()
+
+
+async def test_get_snapshots_for_page():
+    """Test retrieving snapshots for a tracked page."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    fake_snapshots = [
+        SnapshotRead(
+            id=1,
+            tracked_page_id=10,
+            content_hash="abc123",
+            content_text="This is page content",
+            created_at=datetime.now(UTC),
+        ),
+        SnapshotRead(
+            id=2,
+            tracked_page_id=10,
+            content_hash="def456",
+            content_text="Updated page content",
+            created_at=datetime.now(UTC),
+        ),
+    ]
+
+    mock_service = AsyncMock()
+    mock_service.get_all.return_value = fake_snapshots
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_snapshot_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/api/v1/tracked-pages/10/snapshots")
+
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data) == 2
+    assert data[0]["id"] == 1
+    assert data[0]["content_hash"] == "abc123"
+    assert data[1]["id"] == 2
+
+    mock_service.get_all.assert_called_once_with(user_id=1, tracked_page_id=10)
+
+    app.dependency_overrides.clear()
+
+
+async def test_get_snapshots_empty():
+    """Test retrieving snapshots when none exist."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+    mock_service.get_all.return_value = []
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_snapshot_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/api/v1/tracked-pages/10/snapshots")
+
+    assert response.status_code == 200
+    assert response.json() == []
+
+    app.dependency_overrides.clear()
+
+
+async def test_get_snapshots_page_not_found():
+    """Test retrieving snapshots for non-existent page returns 404."""
+    fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
+    mock_service = AsyncMock()
+    mock_service.get_all.side_effect = TrackedPageNotFoundError("Page not found")
+
+    app.dependency_overrides[get_current_user] = lambda: fake_user
+    app.dependency_overrides[get_snapshot_service] = lambda: mock_service
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://testserver") as client:
+        response = await client.get("/api/v1/tracked-pages/999/snapshots")
+
+    assert response.status_code == 404
+
+    app.dependency_overrides.clear()

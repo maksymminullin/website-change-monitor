@@ -71,6 +71,6 @@ class TrackedPageService:
 
         await self.repository.session.commit()
         await self.repository.session.refresh(updated_page)
-        
+
         logger.info(f"Tracked page updated: id={page_id}, user={user_id}, status={page_in.status}")
         return TrackedPageRead.model_validate(updated_page)

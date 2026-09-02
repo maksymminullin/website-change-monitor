@@ -51,9 +51,7 @@ async def login(
     form_data: Annotated[OAuth2PasswordRequestForm, Depends()],
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
-    token_data = await auth_service.login(
-        username=form_data.username, password=form_data.password
-    )
+    token_data = await auth_service.login(username=form_data.username, password=form_data.password)
 
     response.set_cookie("access_token", token_data.access_token, httponly=True, samesite="lax")
 

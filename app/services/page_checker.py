@@ -87,10 +87,10 @@ class PageCheckerService:
     async def check_all_pages(self) -> None:
         pages = await self.tracked_page_repo.get_all_internal()
         logger.info(f"Starting check cycle for {len(pages)} active pages")
-        
+
         tasks = [self.check_page(page.id) for page in pages]
         results = await asyncio.gather(*tasks, return_exceptions=True)
-        
+
         error_count = sum(1 for r in results if isinstance(r, Exception))
         if error_count:
             logger.warning(f"Check cycle completed with {error_count} errors")

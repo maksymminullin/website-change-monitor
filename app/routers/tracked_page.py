@@ -1,4 +1,4 @@
-from typing import Annotated, Literal
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, Form, HTTPException, Request, Response, status
 from fastapi.responses import HTMLResponse
@@ -6,6 +6,7 @@ from fastapi.responses import HTMLResponse
 from app.dependencies.auth import get_current_user
 from app.dependencies.snapshot import get_snapshot_service
 from app.dependencies.tracked_page import get_tracked_page_service
+from app.enums.page_status import PageStatus
 from app.models.user import User
 from app.schemas.snapshot import SnapshotRead
 from app.schemas.tracked_page import TrackedPageCreate, TrackedPageRead, TrackedPageUpdate
@@ -54,7 +55,7 @@ async def update_tracked_page(
     current_user: Annotated[User, Depends(get_current_user)],
     service: Annotated[TrackedPageService, Depends(get_tracked_page_service)],
     page_in: TrackedPageUpdate | None = None,
-    status: Annotated[Literal["active", "archived"] | None, Form()] = None,
+    status: Annotated[PageStatus | None, Form()] = None,
 ):
     update_data = page_in
     if request.headers.get("hx-request") and status is not None:

@@ -1,67 +1,92 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="flex items-center justify-center min-h-[80vh]">
+    <div class="flex items-center justify-center min-h-[80vh]">
 
-    <div class="card w-full max-w-md bg-base-100 shadow-xl border border-base-300">
-        <div class="card-body">
-
-
-            <div role="tablist" class="tabs tabs-boxed">
-
-                <input type="radio" name="auth_tabs" role="tab" class="tab font-semibold" aria-label="Log in" checked />
-                <div role="tabpanel" class="tab-content mt-6">
-
-                    <form hx-post="/login" hx-target="#login-error" hx-swap="innerHTML">
-                        <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Username</span></label>
-                            <input type="text" name="username" placeholder="Enter username" class="input input-bordered w-full" required />
-                        </div>
-
-                        <div class="form-control w-full mt-4">
-                            <label class="label"><span class="label-text">Password</span></label>
-                            <input type="password" name="password" placeholder="Enter password" class="input input-bordered w-full" required />
-                        </div>
+        <div class="card w-full max-w-md bg-base-100 shadow-xl border border-base-300">
+            <div class="card-body">
 
 
-                        <div id="login-error" class="text-error text-sm mt-2 min-h-5"></div>
+                <div role="tablist" class="tabs tabs-boxed">
 
-                        <div class="form-control mt-6">
-                            <button type="submit" class="btn btn-primary w-full">
-                                <i data-lucide="log-in" class="w-4 h-4 mr-2"></i> Log in
-                            </button>
-                        </div>
-                    </form>
-                </div>
+                    <input type="radio"
+                           name="auth_tabs"
+                           role="tab"
+                           class="tab font-semibold"
+                           aria-label="Log in"
+                           checked />
+                    <div role="tabpanel" class="tab-content mt-6">
+
+                        <form hx-post="/login" hx-target="#login-error" hx-swap="innerHTML">
+                            <div class="form-control w-full">
+                                <label class="label"><span class="label-text">Username</span></label>
+                                <input type="text"
+                                       name="username"
+                                       placeholder="Enter username"
+                                       class="input input-bordered w-full"
+                                       required />
+                            </div>
+
+                            <div class="form-control w-full mt-4">
+                                <label class="label"><span class="label-text">Password</span></label>
+                                <input type="password"
+                                       name="password"
+                                       placeholder="Enter password"
+                                       class="input input-bordered w-full"
+                                       required />
+                            </div>
 
 
-                <input type="radio" name="auth_tabs" role="tab" class="tab font-semibold" aria-label="Register" />
-                <div role="tabpanel" class="tab-content mt-6">
+                            <div id="login-error" class="text-error text-sm mt-2 min-h-5"></div>
 
-                    <form hx-post="/register" hx-target="#register-error" hx-swap="innerHTML">
-                        <div class="form-control w-full">
-                            <label class="label"><span class="label-text">Username</span></label>
-                            <input type="text" name="username" placeholder="Choose a username" class="input input-bordered w-full" required />
-                        </div>
+                            <div class="form-control mt-6">
+                                <button type="submit" class="btn btn-primary w-full">
+                                    <i data-lucide="log-in" class="w-4 h-4 mr-2"></i> Log in
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
-                        <div class="form-control w-full mt-4">
-                            <label class="label"><span class="label-text">Password</span></label>
-                            <input type="password" name="password" placeholder="Create a password" class="input input-bordered w-full" required />
-                        </div>
 
-                        <div id="register-error" class="text-error text-sm mt-2 min-h-5"></div>
+                    <input type="radio"
+                           name="auth_tabs"
+                           role="tab"
+                           class="tab font-semibold"
+                           aria-label="Register" />
+                    <div role="tabpanel" class="tab-content mt-6">
 
-                        <div class="form-control mt-6">
-                            <button type="submit" class="btn btn-neutral w-full">
-                                <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register
-                            </button>
-                        </div>
-                    </form>
+                        <form hx-post="/register" hx-target="#register-error" hx-swap="innerHTML">
+                            <div class="form-control w-full">
+                                <label class="label"><span class="label-text">Username</span></label>
+                                <input type="text"
+                                       name="username"
+                                       placeholder="Choose a username"
+                                       class="input input-bordered w-full"
+                                       required />
+                            </div>
+
+                            <div class="form-control w-full mt-4">
+                                <label class="label"><span class="label-text">Password</span></label>
+                                <input type="password"
+                                       name="password"
+                                       placeholder="Create a password"
+                                       class="input input-bordered w-full"
+                                       required />
+                            </div>
+
+                            <div id="register-error" class="text-error text-sm mt-2 min-h-5"></div>
+
+                            <div class="form-control mt-6">
+                                <button type="submit" class="btn btn-neutral w-full">
+                                    <i data-lucide="user-plus" class="w-4 h-4 mr-2"></i> Register
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
                 </div>
 
             </div>
-
         </div>
     </div>
-</div>
 {% endblock %}

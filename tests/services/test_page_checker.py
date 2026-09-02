@@ -163,6 +163,40 @@ async def test_check_page_with_changes(checker_service, mock_session_factory, mo
 
 
 @pytest.mark.asyncio
+async def test_check_page_needs_js_upgrade(checker_service, mock_session_factory, mock_fetcher):
+    page = TrackedPage(id=1, url="http://example.com", status=PageStatus.ACTIVE, requires_js=False)
+
+    fetched = FetchedPage(
+        url="http://example.com",
+        title="JS App",
+        clean_text="JS content",
+        content_hash="jshash123",
+        needs_js_upgrade=True,
+    )
+
+    with (
+        patch("app.services.page_checker.TrackedPageRepository") as mock_repo_class,
+        patch("app.services.page_checker.SnapshotRepository") as mock_snap_class,
+    ):
+        mock_repo = AsyncMock()
+        mock_repo_class.return_value = mock_repo
+        mock_repo.get_by_id_internal.return_value = page
+
+        mock_snap = AsyncMock()
+        mock_snap_class.return_value = mock_snap
+        mock_snap.get_latest_for_page.return_value = None
+
+        mock_fetcher.fetch.return_value = fetched
+
+        await checker_service._check_page_task(1)
+
+        # Should update requires_js
+        update_kwargs = mock_repo.update_internal.call_args.kwargs
+        assert "requires_js" in update_kwargs
+        assert update_kwargs["requires_js"] is True
+
+
+@pytest.mark.asyncio
 async def test_check_all_pages(checker_service, mock_session_factory):
     page1 = TrackedPage(id=1)
     page2 = TrackedPage(id=2)

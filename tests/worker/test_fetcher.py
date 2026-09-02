@@ -70,6 +70,28 @@ async def test_fetcher_spa_upgrade(fetcher):
 
 
 @pytest.mark.asyncio
+async def test_fetcher_with_requires_js(fetcher):
+    with patch.object(fetcher.client, "get", new_callable=AsyncMock) as mock_get:
+        with patch.object(fetcher, "_fetch_with_playwright", new_callable=AsyncMock) as mock_pw:
+            mock_pw.return_value = (
+                "<html><head><title>JS Title</title></head><body>Rendered directly!</body></html>"
+            )
+
+            # Call fetch with requires_js=True
+            result = await fetcher.fetch("https://example.com", requires_js=True)
+
+            assert result.title == "JS Title"
+            assert result.clean_text == "JS Title Rendered directly!"
+            assert (
+                result.needs_js_upgrade is False
+            )  # Because it was explicitly requested, not auto-upgraded
+
+            # HTTPX should NOT be called
+            mock_get.assert_not_called()
+            assert mock_pw.call_count == 1
+
+
+@pytest.mark.asyncio
 async def test_fetcher_no_title(fetcher):
     mock_response = Response(
         status_code=200,

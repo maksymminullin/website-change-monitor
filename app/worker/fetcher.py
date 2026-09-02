@@ -1,3 +1,4 @@
+import asyncio
 import hashlib
 
 import httpx
@@ -9,39 +10,98 @@ from app.schemas.fetcher import FetchedPage
 
 logger = get_logger(__name__)
 
+# Retry configuration
+MAX_RETRIES = 3
+INITIAL_BACKOFF = 1  # seconds
+MAX_BACKOFF = 32  # seconds
+
 
 class PageFetcher:
     def __init__(self, timeout: int = 10):
         self.timeout = timeout
 
+    async def _should_retry(self, error: Exception, status_code: int | None = None) -> bool:
+        """Determine if an error is retryable."""
+        # Retry on timeout
+        if isinstance(error, (asyncio.TimeoutError, httpx.TimeoutException)):
+            return True
+        # Retry on connection errors
+        if isinstance(error, (httpx.ConnectError, httpx.NetworkError)):
+            return True
+        # Retry on 429 (too many requests)
+        if status_code == 429:
+            return True
+        # Retry on 5xx server errors
+        if status_code and 500 <= status_code < 600:
+            return True
+        return False
+
+    async def _fetch_with_retry(self, url: str) -> tuple[str, int]:
+        """Fetch URL with exponential backoff retry."""
+        backoff = INITIAL_BACKOFF
+        last_error = None
+        last_status = None
+
+        for attempt in range(MAX_RETRIES):
+            try:
+                headers = {
+                    "User-Agent": (
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                        "AppleWebKit/537.36 (KHTML, like Gecko) "
+                        "Chrome/126.0.0.0 Safari/537.36"
+                    ),
+                    "Accept": (
+                        "text/html,application/xhtml+xml,application/xml;q=0.9,"
+                        "image/avif,image/webp,*/*;q=0.8"
+                    ),
+                    "Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
+                }
+
+                async with httpx.AsyncClient(
+                    timeout=self.timeout,
+                    headers=headers,
+                    follow_redirects=True,
+                ) as client:
+                    response = await client.get(url)
+                    response.raise_for_status()
+                    logger.debug(f"Successfully fetched {url}, {len(response.text)} bytes")
+                    return response.text, response.status_code
+
+            except httpx.HTTPStatusError as e:
+                last_error = e
+                last_status = e.response.status_code
+                if not self._should_retry(e, last_status):
+                    raise
+                logger.warning(
+                    f"HTTP error {last_status} fetching {url} (attempt {attempt + 1}/{MAX_RETRIES})"
+                )
+
+            except httpx.HTTPError as e:
+                last_error = e
+                if not self._should_retry(e):
+                    raise
+                logger.warning(
+                    f"Network error fetching {url}: {type(e).__name__} "
+                    f"(attempt {attempt + 1}/{MAX_RETRIES})"
+                )
+
+            # Wait before retry
+            if attempt < MAX_RETRIES - 1:
+                await asyncio.sleep(backoff)
+                backoff = min(backoff * 2, MAX_BACKOFF)
+
+        # All retries exhausted
+        raise PageFetchError(
+            f"Failed to fetch {url} after {MAX_RETRIES} attempts: {str(last_error)}"
+        ) from last_error
+
     async def fetch(self, url: str) -> FetchedPage:
-        headers = {
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) "
-                "Chrome/126.0.0.0 Safari/537.36"
-            ),
-            "Accept": (
-                "text/html,application/xhtml+xml,application/xml;q=0.9,"
-                "image/avif,image/webp,*/*;q=0.8"
-            ),
-            "Accept-Language": "uk-UA,uk;q=0.9,en-US;q=0.8,en;q=0.7",
-        }
-
+        """Fetch and parse URL with retry logic."""
         try:
-            async with httpx.AsyncClient(
-                timeout=self.timeout,
-                headers=headers,
-                follow_redirects=True,
-            ) as client:
-                response = await client.get(url)
-                response.raise_for_status()
-                html = response.text
-                logger.debug(f"Successfully fetched {url}, {len(html)} bytes")
-
-        except httpx.HTTPError as e:
-            logger.error(f"HTTP error fetching {url}: {str(e)}")
-            raise PageFetchError(f"Failed to fetch {url}: {str(e)}") from e
+            html, status_code = await self._fetch_with_retry(url)
+        except PageFetchError as e:
+            logger.error(f"Failed to fetch {url}: {str(e)}")
+            raise
 
         soup = BeautifulSoup(html, "html.parser")
 

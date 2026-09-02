@@ -2,9 +2,12 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
+from app.core.logging import setup_logging
 from app.routers.auth import router as auth_router
 from app.routers.tracked_page import router as tracked_page_router
 from app.routers.web import router as web_router
+
+setup_logging()
 
 settings = get_settings()
 

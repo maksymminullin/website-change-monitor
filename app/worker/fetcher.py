@@ -3,8 +3,11 @@ import hashlib
 import httpx
 from bs4 import BeautifulSoup
 
+from app.core.logging import get_logger
 from app.exceptions.fetcher import PageFetchError
 from app.schemas.fetcher import FetchedPage
+
+logger = get_logger(__name__)
 
 
 class PageFetcher:
@@ -34,8 +37,10 @@ class PageFetcher:
                 response = await client.get(url)
                 response.raise_for_status()
                 html = response.text
+                logger.debug(f"Successfully fetched {url}, {len(html)} bytes")
 
         except httpx.HTTPError as e:
+            logger.error(f"HTTP error fetching {url}: {str(e)}")
             raise PageFetchError(f"Failed to fetch {url}: {str(e)}") from e
 
         soup = BeautifulSoup(html, "html.parser")
@@ -49,6 +54,8 @@ class PageFetcher:
 
         clean_text = soup.get_text(separator=" ", strip=True)
         content_hash = hashlib.sha256(clean_text.encode("utf-8")).hexdigest()
+
+        logger.debug(f"Parsed {url}: title='{title}', content_hash={content_hash[:8]}...")
 
         return FetchedPage(
             url=url,

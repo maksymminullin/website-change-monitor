@@ -35,14 +35,13 @@ async def web_login(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
     from app.exceptions.auth import InvalidCredentialsError
+
     try:
         token_data = await auth_service.login(
             username=form_data.username, password=form_data.password
         )
     except InvalidCredentialsError as e:
-        return HTMLResponse(
-            f"<span class='text-error'>{e}</span>", status_code=status.HTTP_200_OK
-        )
+        return HTMLResponse(f"<span class='text-error'>{e}</span>", status_code=status.HTTP_200_OK)
     except HTTPException as e:
         return HTMLResponse(
             f"<span class='text-error'>{e.detail}</span>", status_code=status.HTTP_200_OK
@@ -62,13 +61,12 @@ async def web_register(
     auth_service: Annotated[AuthService, Depends(get_auth_service)],
 ):
     from app.exceptions.user import UserAlreadyExistsError
+
     try:
         user_in = UserCreate(username=username, password=password)
         token_data = await auth_service.register(user_in)
     except UserAlreadyExistsError as e:
-        return HTMLResponse(
-            f"<span class='text-error'>{e}</span>", status_code=status.HTTP_200_OK
-        )
+        return HTMLResponse(f"<span class='text-error'>{e}</span>", status_code=status.HTTP_200_OK)
     except ValidationError:
         error_msg = (
             "Invalid input: Username must be at least 3 characters "

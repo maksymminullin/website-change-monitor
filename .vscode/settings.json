@@ -1,0 +1,11 @@
+{
+    "[html]": {
+        "editor.defaultFormatter": "monosans.djlint"
+    },
+    "[jinja]": {
+        "editor.defaultFormatter": "monosans.djlint"
+    },
+    "[javascript]": {
+        "editor.defaultFormatter": "oxc.oxc"
+    }
+}

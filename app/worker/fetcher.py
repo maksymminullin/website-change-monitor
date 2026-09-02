@@ -39,7 +39,7 @@ class PageFetcher:
     async def aclose(self):
         await self.client.aclose()
 
-    async def _should_retry(self, error: Exception, status_code: int | None = None) -> bool:
+    def _should_retry(self, error: Exception, status_code: int | None = None) -> bool:
         if isinstance(error, (asyncio.TimeoutError, httpx.TimeoutException)):
             return True
         if isinstance(error, (httpx.ConnectError, httpx.NetworkError)):
@@ -94,6 +94,9 @@ class PageFetcher:
         except PageFetchError as e:
             logger.error(f"Failed to fetch {url}: {str(e)}")
             raise
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error fetching {url}: {str(e)}")
+            raise PageFetchError(f"HTTP error fetching {url}: {str(e)}") from e
 
         soup = BeautifulSoup(html, "html.parser")
 

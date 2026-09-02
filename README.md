@@ -1,5 +1,4 @@
-# Website Сhange Monitor
-
+# Website Change Monitor
 
 Website Monitor is a full-stack application for tracking changes on public web pages.
 
@@ -7,44 +6,37 @@ Users can add URLs to monitor, browse saved content snapshots, archive pages to 
 
 ## Features
 
-- User registration and authentication
-- Add public URLs for monitoring
-- Duplicate URL validation for each user
-- Automatic page-title extraction
-- Scheduled checks performed by a dedicated worker container
-- SHA-256 content hashing to avoid duplicate snapshots
-- Snapshot history displayed in a modal with Previous and Next navigation
-- Archive pages to stop scheduled checks
-- Reactivate archived pages to resume monitoring
-- Automatic `last_checked_at` and `last_changed_at` updates
-- Alembic database migrations
-- Docker Compose setup with separate API, worker, and PostgreSQL services
-
-## How it works
-
-1. A user adds a URL to monitor.
-2. The worker selects tracked pages whose status is `active`.
-3. The worker fetches the page with HTTPX.
-4. BeautifulSoup extracts readable text and the page title from the HTML response.
-5. The worker calculates a SHA-256 hash for the extracted text.
-6. The hash is compared with the most recent stored snapshot.
-7. If the content hash differs, the worker creates a new snapshot in PostgreSQL.
-8. The worker updates `last_checked_at`; it also updates `last_changed_at` when content changes.
-9. Archived pages are excluded from future scheduled checks.
+- **User Authentication:** Registration and JWT-based authentication.
+- **Track URLs:** Add public URLs for monitoring with duplicate URL validation.
+- **Background Scraper:** Scheduled checks performed by a dedicated worker using HTTP connection pooling and concurrency limits.
+- **Smart Snapshots:** Automatic page-title extraction and SHA-256 content hashing to avoid saving duplicate data.
+- **History Browsing:** Snapshot history displayed in a modal with Previous and Next navigation.
+- **Pause/Resume:** Archive pages to stop scheduled checks and reactivate them to resume.
+- **Automatic Tracking:** Updates `last_checked_at` and `last_changed_at` automatically.
+- **Clean API:** Strict separation between the HTMX-driven Web UI layer and the pure JSON REST API.
+- **CI/CD:** Fully automated testing and linting via GitHub Actions.
 
 ## Architecture
 
-The project uses a layered architecture with clear separation between API, service, and data-access layers.
+The project uses a layered architecture with clear separation between the UI, API, Service, and Data Access layers.
 
-In the service layer, the Unit of Work pattern is implemented using SQLAlchemy's async session directly, without a separate UoW class. This follows SQLAlchemy's design, where the session itself acts as the unit of work.
+- **Web UI (`/web`):** Handled by FastAPI returning Jinja2 templates and interacting seamlessly with HTMX for dynamic partial page updates without full reloads.
+- **REST API (`/api/v1`):** Pure JSON endpoints designed for potential mobile apps or external integrations.
+- **Service Layer:** Centralizes business logic. The Unit of Work pattern is implemented using SQLAlchemy's async session (`async_sessionmaker`), ensuring robust database connection handling, especially for concurrent background tasks.
+- **Worker Concurrency:** The background worker (`APScheduler`) spawns concurrent tasks to check websites asynchronously using `httpx.AsyncClient` pooling and an `asyncio.Semaphore` to gracefully limit memory and DB connection usage.
 
 ```mermaid
 flowchart LR
-    Browser[Browser] --> API[FastAPI API and Web UI]
-    API --> DB[(PostgreSQL)]
+    Browser[Browser / HTMX] <--> UI[FastAPI Web UI]
+    External[External Client] <--> API[FastAPI JSON API]
+    
+    UI <--> Service[Service Layer]
+    API <--> Service
+    
+    Service <--> DB[(PostgreSQL)]
 
-    Worker[Background Worker\nAPScheduler] --> DB
-    Worker --> Websites[Tracked websites]
+    Worker[Background Worker] --> DB
+    Worker --> Websites[Tracked Websites]
 ```
 
 ### Docker services
@@ -57,123 +49,130 @@ flowchart LR
 
 ## Tech stack
 
-**Backend:** Python 3.12, FastAPI, SQLAlchemy Async ORM, PostgreSQL, Alembic, APScheduler, HTTPX, BeautifulSoup4, Pydantic
+- **Backend:** Python 3.12, FastAPI, SQLAlchemy Async ORM, PostgreSQL, Alembic, APScheduler, HTTPX, BeautifulSoup4, Pydantic
+- **Frontend:** Jinja2 templates, HTMX, Tailwind CSS, daisyUI, Lucide icons
+- **Infrastructure:** Docker, Docker Compose, `uv` (Python package manager)
+- **CI/CD:** GitHub Actions, Pytest, Ruff
 
-**Frontend:** Jinja2 templates, HTMX, Tailwind CSS, daisyUI, Lucide icons
+---
 
-**Infrastructure:** Docker, Docker Compose, uv
+## 🛠 Prerequisites
 
-## Run locally
+To run and develop this project locally, you need the following tools installed on your machine:
+1. **[Git](https://git-scm.com/downloads)** - For version control.
+2. **[Docker](https://docs.docker.com/get-docker/)** - To run the application containers.
+3. **[Docker Compose](https://docs.docker.com/compose/install/)** - To orchestrate the API, Worker, and Database.
 
-### Prerequisites
+## 🚀 Run locally
 
-- Docker and Docker Compose
-- Git
-
-### Development setup
-
-Clone the repository:
+### 1. Clone the repository
 
 ```bash
 git clone https://github.com/maksymminullin/website-change-monitor.git
 cd website-change-monitor
 ```
 
+### 2. Configure environment variables
+
 Create the local development environment file from the template:
 
 ```bash
 cp .env.example .env
 ```
+*(Update values in `.env` if needed, but defaults work out of the box for local development).*
 
-Update values in `.env` if needed, then start all services:
+### 3. Start the application
+
+Start all services (Database, API, Worker) in detached mode:
 
 ```bash
-docker compose up --build
+docker compose up -d --build
 ```
 
-Apply database migrations in a separate terminal:
+### 4. Apply database migrations
+
+Set up the database tables by running Alembic inside the API container:
 
 ```bash
 docker compose exec api alembic upgrade head
 ```
 
-Open the application:
+### 5. Open the app
 
-```text
-http://localhost:8000
-```
+The application is now running. Open your browser and navigate to:
+**http://localhost:8000**
 
-## Test setup
+---
 
-Create a test environment file from the test template:
+## 📋 Useful Commands (Logs, DB, etc.)
 
-```bash
-cp .env.test.example .env.test
-```
-
-The test configuration uses a separate database named `monitor_test_db`. Create it once in the local PostgreSQL container:
-
-```bash
-docker compose exec db psql -U postgres -d postgres -c "CREATE DATABASE monitor_test_db;"
-```
-
-The `.env.test` file must point to the local test database:
-
-```env
-DATABASE_URL=postgresql+asyncpg://postgres:test_password@localhost:5433/monitor_test_db
-JWT_SECRET_KEY=replace_with_test_jwt_secret
-```
-
-> `.env` and `.env.test` contain local values and should not be committed. `.env.example` and `.env.test.example` are safe templates committed to the repository.
-
-## Useful commands
-
-Stop the stack:
-
-```bash
-docker compose down
-```
-
-View logs for all containers:
-
+**View all logs in real-time:**
 ```bash
 docker compose logs --tail=100 -f
 ```
 
-View logs for a specific container:
-
+**View logs for a specific service:**
 ```bash
 docker compose logs --tail=100 -f api
 docker compose logs --tail=100 -f worker
 docker compose logs --tail=100 -f db
 ```
 
-Apply migrations:
-
+**Stop the application:**
 ```bash
-docker compose exec api alembic upgrade head
+docker compose down
 ```
 
-Create a new migration:
-
+**Create a new database migration:**
 ```bash
 docker compose exec api alembic revision --autogenerate -m "describe change"
 ```
 
-Open a PostgreSQL shell:
-
+**Open a PostgreSQL shell:**
 ```bash
 docker compose exec db psql -U "$POSTGRES_USER" -d "$POSTGRES_DB"
 ```
 
-## Limitations
+---
 
-The worker currently uses HTTPX and BeautifulSoup, so it can monitor websites that return meaningful content in their initial HTML response.
+## 🧪 Testing & CI/CD
 
-Websites that render content entirely in the browser with JavaScript can return empty or incomplete HTML to the worker. Browser-based rendering is not implemented yet.
+This project uses **Pytest** for testing and **GitHub Actions** for Continuous Integration. Every push to the `main` branch triggers the CI pipeline which:
+1. Lints and formats the code using `ruff`.
+2. Spins up a temporary PostgreSQL service container.
+3. Runs the full test suite (`pytest`) against the database to ensure no API or worker logic is broken.
 
-## TODO
+### Running tests locally
 
-- Write automated tests
-- Add browser-based parsing with Playwright for JavaScript-rendered websites and complex single-page applications
-- Add a snapshot-diff view that highlights added and removed content between two snapshots, similar to GitHub's file-diff interface
+To run tests locally, you need to use the local Python virtual environment managed by `uv` and ensure the test database is running on port 5433 (which is mapped in `docker-compose.yml`).
+
+Create the test `.env` file:
+```bash
+cp .env.test.example .env.test
+```
+
+Start the local database via Docker:
+```bash
+docker compose up -d db
+```
+
+Create the test database inside the container (only needed once):
+```bash
+docker compose exec db psql -U postgres -d postgres -c "CREATE DATABASE monitor_test_db;"
+```
+
+Run tests using `uv`:
+```bash
+uv run pytest
+```
+
+Run linting:
+```bash
+uv run ruff check .
+uv run ruff format .
+```
+
+## Limitations & Future Plans
+
+- **JavaScript Rendering:** The worker currently uses HTTPX and BeautifulSoup, meaning it only parses the initial HTML payload. Sites relying heavily on client-side JS rendering (SPAs) are not fully supported yet.
+- **Visual Diffs:** Planning to add a snapshot-diff view that highlights added and removed content between two snapshots (similar to GitHub's file-diff interface).

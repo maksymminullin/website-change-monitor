@@ -27,7 +27,8 @@
                                 {{ page.url }}
                             {% endif %}
                             {% if page.requires_js %}
-                                <div class="badge badge-accent badge-sm ml-2" title="Uses JavaScript Rendering">JS</div>
+                                <div class="badge badge-accent badge-sm ml-2"
+                                     title="Uses JavaScript Rendering">JS</div>
                             {% endif %}
                         </h2>
 
@@ -44,7 +45,7 @@
 
                     <div class="flex-none flex gap-2 ml-4">
 
-                        {# Кнопка завжди є, тільки її текст і значення змінюються від status #}
+                        {# The button is always present, only its text and action change based on status #}
                         <button class="btn btn-sm btn-outline"
                                 title="{% if page.status == 'archived' %}Activate{% else %}Archive{% endif %}"
                                 hx-patch="/tracked-pages/{{ page.id }}"

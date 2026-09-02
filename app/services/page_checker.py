@@ -40,7 +40,7 @@ class PageCheckerService:
                 logger.info(f"Starting check for page {page_id} ({page.url})")
 
                 try:
-                    fetched_data = await self.fetcher.fetch(page.url)
+                    fetched_data = await self.fetcher.fetch(page.url, requires_js=page.requires_js)
                 except PageFetchError as e:
                     logger.error(f"Failed to fetch page {page_id}: {str(e)}")
                     await tracked_page_repo.update_internal(page.id, last_checked_at=now)
@@ -78,6 +78,8 @@ class PageCheckerService:
                 }
                 if has_changes:
                     update_data["last_changed_at"] = now
+                if fetched_data.needs_js_upgrade:
+                    update_data["requires_js"] = True
 
                 await tracked_page_repo.update_internal(page.id, **update_data)
 

@@ -12,6 +12,11 @@ COPY pyproject.toml uv.lock ./
 
 RUN uv sync --frozen --no-dev --no-install-project
 
+# Install Playwright and its dependencies
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+RUN uv run playwright install --with-deps chromium \
+    && chmod -R 777 /ms-playwright
+
 COPY app ./app
 COPY main.py ./main.py
 COPY alembic.ini ./alembic.ini

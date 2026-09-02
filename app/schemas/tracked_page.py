@@ -34,6 +34,7 @@ class TrackedPageCreate(BaseModel):
 class TrackedPageRead(BaseModel):
     id: int
     url: str = Field(min_length=1, max_length=2048)
+    requires_js: bool = False
     title: str | None = None
     status: PageStatus
     created_at: datetime

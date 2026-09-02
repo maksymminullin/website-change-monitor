@@ -19,12 +19,15 @@
                     <div class="flex-1 overflow-hidden cursor-pointer"
                          onclick="openSnapshotModal('{{ page.id }}', '{{ page.url }}')">
 
-                        <h2 class="card-title text-lg truncate hover:text-primary transition-colors"
+                        <h2 class="card-title text-lg truncate hover:text-primary transition-colors flex items-center"
                             title="{% if page.title and page.title != 'No title' %}{{ page.title }}{% else %}{{ page.url }}{% endif %}">
                             {% if page.title and page.title != 'No title' %}
                                 {{ page.title }}
                             {% else %}
                                 {{ page.url }}
+                            {% endif %}
+                            {% if page.requires_js %}
+                                <div class="badge badge-accent badge-sm ml-2" title="Uses JavaScript Rendering">JS</div>
                             {% endif %}
                         </h2>
 

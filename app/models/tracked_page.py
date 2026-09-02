@@ -1,6 +1,6 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.enums.page_status import PageStatus
@@ -15,6 +15,9 @@ class TrackedPage(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     user_id: Mapped[int] = mapped_column(ForeignKey("users.id"), nullable=False, index=True)
     url: Mapped[str] = mapped_column(String(2048), nullable=False)
+    requires_js: Mapped[bool] = mapped_column(
+        Boolean, default=False, nullable=False, server_default="false"
+    )
     title: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[PageStatus] = mapped_column(
         String(50), default=PageStatus.ACTIVE, nullable=False, index=True

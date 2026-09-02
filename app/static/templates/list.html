@@ -46,7 +46,7 @@
                 <button
                     class="btn btn-sm btn-outline"
                     title="{% if page.status == 'archived' %}Activate{% else %}Archive{% endif %}"
-                    hx-patch="/api/v1/tracked-pages/{{ page.id }}"
+                    hx-patch="/tracked-pages/{{ page.id }}"
                     hx-vals='{"status": "{% if page.status == 'archived' %}active{% else %}archived{% endif %}"}'
                     hx-swap="none">
                     {% if page.status == 'archived' %}
@@ -60,7 +60,7 @@
 
                 <button class="btn btn-sm btn-outline btn-error flex items-center justify-center gap-2 "
                         title="Delete"
-                        hx-delete="/api/v1/tracked-pages/{{ page.id }}"
+                        hx-delete="/tracked-pages/{{ page.id }}"
                         hx-target="closest .card"
                         hx-swap="outerHTML"
                         hx-confirm="Are you sure you want to delete this page?">

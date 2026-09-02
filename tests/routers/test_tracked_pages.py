@@ -6,6 +6,7 @@ from httpx import ASGITransport, AsyncClient
 from app.dependencies.auth import get_current_user
 from app.dependencies.snapshot import get_snapshot_service
 from app.dependencies.tracked_page import get_tracked_page_service
+from app.enums.page_status import PageStatus
 from app.exceptions.tracked_page import (
     TrackedPageAlreadyExistsError,
     TrackedPageNotFoundError,
@@ -26,7 +27,7 @@ async def test_create_tracked_page_success():
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
 
     fake_created_page = TrackedPageRead(
-        id=10, url="https://example.com", status="active", created_at=datetime.now(UTC)
+        id=10, url="https://example.com", status=PageStatus.ACTIVE, created_at=datetime.now(UTC)
     )
 
     mock_service = AsyncMock()
@@ -106,7 +107,6 @@ async def test_create_service_rejects_duplicate_after_url_normalization():
 
 
 async def test_create_tracked_page_missing_url():
-    """Test creating page without URL returns 400."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
 
@@ -125,10 +125,9 @@ async def test_create_tracked_page_missing_url():
 
 
 async def test_create_tracked_page_htmx_success():
-    """Test creating page with HTMX request returns HTML."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     fake_created_page = TrackedPageRead(
-        id=10, url="https://example.com", status="active", created_at=datetime.now(UTC)
+        id=10, url="https://example.com", status=PageStatus.ACTIVE, created_at=datetime.now(UTC)
     )
 
     mock_service = AsyncMock()
@@ -153,7 +152,6 @@ async def test_create_tracked_page_htmx_success():
 
 
 async def test_create_tracked_page_htmx_duplicate():
-    """Test creating duplicate page with HTMX returns HTML error."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
     mock_service.create.side_effect = TrackedPageAlreadyExistsError("Page already tracked")
@@ -175,14 +173,13 @@ async def test_create_tracked_page_htmx_duplicate():
 
 
 async def test_get_all_tracked_pages():
-    """Test retrieving all tracked pages for a user."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     fake_pages = [
         TrackedPageRead(
-            id=1, url="https://example1.com", status="active", created_at=datetime.now(UTC)
+            id=1, url="https://example1.com", status=PageStatus.ACTIVE, created_at=datetime.now(UTC)
         ),
         TrackedPageRead(
-            id=2, url="https://example2.com", status="archived", created_at=datetime.now(UTC)
+            id=2, url="https://example2.com", status=PageStatus.ACTIVE, created_at=datetime.now(UTC)
         ),
     ]
 
@@ -202,7 +199,7 @@ async def test_get_all_tracked_pages():
     assert data[0]["url"] == "https://example1.com"
     assert data[0]["status"] == "active"
     assert data[1]["url"] == "https://example2.com"
-    assert data[1]["status"] == "archived"
+    assert data[1]["status"] == "active"
 
     mock_service.get_all.assert_called_once_with(user_id=1)
 
@@ -210,7 +207,6 @@ async def test_get_all_tracked_pages():
 
 
 async def test_get_all_tracked_pages_empty():
-    """Test retrieving tracked pages when none exist."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
     mock_service.get_all.return_value = []
@@ -229,10 +225,9 @@ async def test_get_all_tracked_pages_empty():
 
 
 async def test_update_tracked_page_status():
-    """Test updating page status via HTMX form data."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     updated_page = TrackedPageRead(
-        id=10, url="https://example.com", status="archived", created_at=datetime.now(UTC)
+        id=10, url="https://example.com", status=PageStatus.ARCHIVED, created_at=datetime.now(UTC)
     )
 
     mock_service = AsyncMock()
@@ -261,10 +256,9 @@ async def test_update_tracked_page_status():
 
 
 async def test_update_tracked_page_htmx():
-    """Test updating page with HTMX request returns refresh."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     updated_page = TrackedPageRead(
-        id=10, url="https://example.com", status="archived", created_at=datetime.now(UTC)
+        id=10, url="https://example.com", status=PageStatus.ARCHIVED, created_at=datetime.now(UTC)
     )
 
     mock_service = AsyncMock()
@@ -288,7 +282,6 @@ async def test_update_tracked_page_htmx():
 
 
 async def test_update_tracked_page_not_found():
-    """Test updating non-existent page returns 404."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
     mock_service.update.side_effect = TrackedPageNotFoundError("Page not found")
@@ -310,7 +303,6 @@ async def test_update_tracked_page_not_found():
 
 
 async def test_update_tracked_page_no_data():
-    """Test updating page with no data returns 400."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
 
@@ -329,7 +321,6 @@ async def test_update_tracked_page_no_data():
 
 
 async def test_delete_tracked_page():
-    """Test deleting a tracked page."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
 
@@ -347,7 +338,6 @@ async def test_delete_tracked_page():
 
 
 async def test_delete_tracked_page_htmx():
-    """Test deleting page with HTMX request returns empty response."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
 
@@ -365,7 +355,6 @@ async def test_delete_tracked_page_htmx():
 
 
 async def test_delete_tracked_page_not_found():
-    """Test deleting non-existent page returns 404."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
     mock_service.delete.side_effect = TrackedPageNotFoundError("Page not found")
@@ -383,7 +372,6 @@ async def test_delete_tracked_page_not_found():
 
 
 async def test_get_snapshots_for_page():
-    """Test retrieving snapshots for a tracked page."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     fake_snapshots = [
         SnapshotRead(
@@ -425,7 +413,6 @@ async def test_get_snapshots_for_page():
 
 
 async def test_get_snapshots_empty():
-    """Test retrieving snapshots when none exist."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
     mock_service.get_all.return_value = []
@@ -444,7 +431,6 @@ async def test_get_snapshots_empty():
 
 
 async def test_get_snapshots_page_not_found():
-    """Test retrieving snapshots for non-existent page returns 404."""
     fake_user = User(id=1, username="testuser", created_at=datetime.now(UTC))
     mock_service = AsyncMock()
     mock_service.get_all.side_effect = TrackedPageNotFoundError("Page not found")

@@ -3,26 +3,22 @@ from datetime import datetime
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 
 from app.core.database import async_session_factory
-from app.repositories.snapshot import SnapshotRepository
-from app.repositories.tracked_page import TrackedPageRepository
 from app.services.page_checker import PageCheckerService
 from app.worker.fetcher import PageFetcher
 
 
 async def run_page_check_job() -> None:
-    async with async_session_factory() as session:
-        tracked_page_repo = TrackedPageRepository(session)
-        snapshot_repo = SnapshotRepository(session)
-        fetcher = PageFetcher(timeout=15)
+    fetcher = PageFetcher(timeout=15)
 
+    try:
         service = PageCheckerService(
-            session=session,
-            tracked_page_repo=tracked_page_repo,
-            snapshot_repo=snapshot_repo,
+            session_factory=async_session_factory,
             fetcher=fetcher,
         )
 
         await service.check_all_pages()
+    finally:
+        await fetcher.aclose()
 
 
 def setup_scheduler() -> AsyncIOScheduler:

@@ -7,7 +7,7 @@
         <h1 class="text-4xl font-bold mb-2">Add New Page</h1>
         <p class="text-base-content/70 mb-8">Enter the URL of the webpage you want to monitor for changes.</p>
 
-        <form hx-post="/api/v1/tracked-pages"
+        <form hx-post="/tracked-pages"
               hx-target="#result-message"
               hx-swap="innerHTML"
               hx-on::after-request="if(event.detail.successful) this.reset()"

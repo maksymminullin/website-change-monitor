@@ -5,13 +5,14 @@ Revises: ea7d1847a2c9
 Create Date: 2026-09-02 20:17:28.106370
 
 """
+
 from collections.abc import Sequence
 
 from alembic import op
 
 # revision identifiers, used by Alembic.
-revision: str = 'b4b569877ac1'
-down_revision: str | Sequence[str] | None = 'ea7d1847a2c9'
+revision: str = "b4b569877ac1"
+down_revision: str | Sequence[str] | None = "ea7d1847a2c9"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 
@@ -24,9 +25,7 @@ def upgrade() -> None:
         None, "snapshots", "tracked_pages", ["tracked_page_id"], ["id"], ondelete="CASCADE"
     )
     op.drop_constraint(op.f("tracked_pages_user_id_fkey"), "tracked_pages", type_="foreignkey")
-    op.create_foreign_key(
-        None, "tracked_pages", "users", ["user_id"], ["id"], ondelete="CASCADE"
-    )
+    op.create_foreign_key(None, "tracked_pages", "users", ["user_id"], ["id"], ondelete="CASCADE")
     # ### end Alembic commands ###
 
 

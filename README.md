@@ -10,6 +10,7 @@ Users can add URLs to monitor, browse saved content snapshots, archive pages to 
 - **Track URLs:** Add public URLs for monitoring with duplicate URL validation.
 - **Background Scraper:** Scheduled checks performed by a dedicated worker using HTTP connection pooling and concurrency limits.
 - **Smart Snapshots:** Automatic page-title extraction and SHA-256 content hashing to avoid saving duplicate data.
+- **Visual Diffs:** Beautiful, dynamic UI highlighting added and removed content between snapshots.
 - **History Browsing:** Snapshot history displayed in a modal with Previous and Next navigation.
 - **Pause/Resume:** Archive pages to stop scheduled checks and reactivate them to resume.
 - **Automatic Tracking:** Updates `last_checked_at` and `last_changed_at` automatically.
@@ -175,4 +176,3 @@ uv run ruff format .
 ## Limitations & Future Plans
 
 - **JavaScript Rendering:** The worker currently uses HTTPX and BeautifulSoup, meaning it only parses the initial HTML payload. Sites relying heavily on client-side JS rendering (SPAs) are not fully supported yet.
-- **Visual Diffs:** Planning to add a snapshot-diff view that highlights added and removed content between two snapshots (similar to GitHub's file-diff interface).

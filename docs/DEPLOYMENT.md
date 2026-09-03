@@ -20,35 +20,65 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 ```
 
-### 2. Clone Repository
+### 2. GitHub SSH Key Configuration
+
+To clone the repository securely, generate an SSH key on the server:
 
 ```bash
-git clone https://github.com/maksymminullin/website-change-monitor.git
+ssh-keygen -t ed25519 -C "your_email@example.com"
+```
+Press `Enter` to accept the default file location and leave the passphrase empty.
+
+Display the generated public key:
+
+```bash
+cat ~/.ssh/id_ed25519.pub
+```
+
+Copy the output and add it to your GitHub account:
+1. Go to GitHub -> Settings -> SSH and GPG keys.
+2. Click "New SSH key".
+3. Paste the key and save.
+
+### 3. Clone Repository
+
+Once the SSH key is added to GitHub, clone the repository and navigate into the project directory:
+
+```bash
+git clone git@github.com:maksymminullin/website-change-monitor.git
 cd website-change-monitor
 ```
 
-### 3. Environment Configuration
+### 4. Environment Configuration
 
-Copy the example environment file:
+Ensure you are inside the `website-change-monitor` directory. Copy the example environment file:
 
 ```bash
 cp .env.example .env.production
 ```
 
-Edit `.env.production` and configure the following variables:
-- `SECRET_KEY`: Generate a secure key (e.g., using `openssl rand -hex 32`).
+Edit `.env.production` using a text editor (e.g., `nano`):
+
+```bash
+nano .env.production
+```
+
+Configure the following variables:
+- `SECRET_KEY`: Generate a secure key. You can generate one by running `openssl rand -hex 32` in a separate terminal.
 - `POSTGRES_PASSWORD`: Set a secure database password.
-- `DATABASE_URL`: Ensure it matches the production DB connection string and the new password: `postgresql+asyncpg://postgres:YOUR_PASSWORD@db:5432/monitor_db`.
+- `DATABASE_URL`: Ensure it matches the production DB connection string and incorporates the new password: `postgresql+asyncpg://postgres:YOUR_PASSWORD@db:5432/monitor_db`.
 
-### 4. Deploy Services
+Save the file and exit the editor (in `nano`: press `Ctrl+O`, `Enter`, then `Ctrl+X`).
 
-Start the stack using the production compose file:
+### 5. Deploy Services
+
+Start the stack using the production compose file. This command downloads the required images and starts the containers in the background:
 
 ```bash
 docker compose -f docker-compose-prod.yml up -d --build
 ```
 
-### 5. Database Migrations
+### 6. Database Migrations
 
 Apply Alembic migrations to initialize the database schema:
 
@@ -60,17 +90,17 @@ The application is now accessible via HTTPS at the configured domain. Caddy auto
 
 ## Maintenance Commands
 
-View logs:
+View real-time logs:
 ```bash
 docker compose -f docker-compose-prod.yml logs -f
 ```
 
-Restart services:
+Restart all services:
 ```bash
 docker compose -f docker-compose-prod.yml restart
 ```
 
-Stop services:
+Stop all services:
 ```bash
 docker compose -f docker-compose-prod.yml down
 ```

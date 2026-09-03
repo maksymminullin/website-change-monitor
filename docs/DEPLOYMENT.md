@@ -1,76 +1,76 @@
-# Deployment Guide (DigitalOcean)
+# Deployment
 
-This guide walks you through deploying the Website Change Monitor on a fresh DigitalOcean Ubuntu Droplet.
+Steps to deploy the Website Change Monitor to an Ubuntu server (e.g., DigitalOcean Droplet).
 
-## 1. Prerequisites
-- A DigitalOcean Droplet running **Ubuntu 22.04 or 24.04**.
-- An **A Record** in your DNS settings pointing `web.monitor.com` to your Droplet's IP address. (Caddy needs this to generate the SSL certificate).
+## Requirements
 
-## 2. Connect to your Droplet
-Open your terminal and connect to your server via SSH:
+- Ubuntu 22.04 or 24.04
+- Root or sudo SSH access
+- DNS A record configured to point the domain (e.g., `web.monitor.com`) to the server IP.
+
+## Setup Instructions
+
+### 1. System Dependencies
+
+SSH into the server and install Docker:
+
 ```bash
-ssh root@YOUR_DROPLET_IP
-```
-
-## 3. Install Docker and Docker Compose
-Run the following commands on your server to install Docker:
-```bash
-# Update packages
 apt-get update && apt-get upgrade -y
-
-# Install Docker
 curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 ```
 
-Verify the installation:
-```bash
-docker compose version
-```
+### 2. Clone Repository
 
-## 4. Download the Project
-Clone the repository to your server:
 ```bash
 git clone https://github.com/maksymminullin/website-change-monitor.git
 cd website-change-monitor
 ```
 
-## 5. Configure Production Environment Variables
-Create the production environment file:
+### 3. Environment Configuration
+
+Copy the example environment file:
+
 ```bash
 cp .env.example .env.production
 ```
 
-Now, edit this file using `nano`:
-```bash
-nano .env.production
-```
+Edit `.env.production` and configure the following variables:
+- `SECRET_KEY`: Generate a secure key (e.g., using `openssl rand -hex 32`).
+- `POSTGRES_PASSWORD`: Set a secure database password.
+- `DATABASE_URL`: Ensure it matches the production DB connection string and the new password: `postgresql+asyncpg://postgres:YOUR_PASSWORD@db:5432/monitor_db`.
 
-Inside the file, change the following values:
-1. `SECRET_KEY`: Generate a random string. You can use this command in another terminal: `openssl rand -hex 32`
-2. `POSTGRES_PASSWORD`: Change it to a secure password.
-3. `DATABASE_URL`: Update it to match your new password (e.g., `postgresql+asyncpg://postgres:YOUR_NEW_PASSWORD@db:5432/monitor_db`). Notice it uses `db:5432` instead of `127.0.0.1:5433` because in production, containers communicate via the internal Docker network.
+### 4. Deploy Services
 
-Save and exit `nano` by pressing `Ctrl+O`, `Enter`, and then `Ctrl+X`.
+Start the stack using the production compose file:
 
-## 6. Start the Application
-Start the containers in detached mode using the production compose file:
 ```bash
 docker compose -f docker-compose-prod.yml up -d --build
 ```
-*This will download the PostgreSQL and Caddy images, and build the Python API and Worker images. It might take a few minutes.*
 
-## 7. Apply Database Migrations
-Initialize the database tables:
+### 5. Database Migrations
+
+Apply Alembic migrations to initialize the database schema:
+
 ```bash
 docker compose -f docker-compose-prod.yml exec api alembic upgrade head
 ```
 
-## 8. Verify
-Your application should now be live!
-Visit **https://web.monitor.com** in your browser. Caddy will automatically provision a Let's Encrypt SSL certificate for you.
+The application is now accessible via HTTPS at the configured domain. Caddy automatically handles Let's Encrypt SSL certificate provisioning.
 
-## Useful Commands
-- View Logs: `docker compose -f docker-compose-prod.yml logs -f`
-- Restart App: `docker compose -f docker-compose-prod.yml restart`
-- Stop App: `docker compose -f docker-compose-prod.yml down`
+## Maintenance Commands
+
+View logs:
+```bash
+docker compose -f docker-compose-prod.yml logs -f
+```
+
+Restart services:
+```bash
+docker compose -f docker-compose-prod.yml restart
+```
+
+Stop services:
+```bash
+docker compose -f docker-compose-prod.yml down
+```

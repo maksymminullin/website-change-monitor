@@ -14,8 +14,6 @@ htmlcov/
 
 node_modules/
 
-app/static/css/app.css
-
 .idea/
 .vscode/
 .DS_Store

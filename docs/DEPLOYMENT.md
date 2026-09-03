@@ -10,7 +10,20 @@ Steps to deploy the Website Change Monitor to an Ubuntu server (e.g., DigitalOce
 
 ## Setup Instructions
 
-### 1. System Dependencies
+### 1. Server Memory Optimization (Swap File)
+
+For servers with 1GB or less of RAM, building Docker images containing Playwright can cause Out Of Memory (OOM) errors. Creating a 1GB swap file is highly recommended to prevent the server from crashing during deployment.
+
+Run the following commands on your server:
+
+```bash
+fallocate -l 1G /swapfile
+chmod 600 /swapfile
+mkswap /swapfile
+swapon /swapfile
+```
+
+### 2. System Dependencies
 
 SSH into the server and install Docker:
 
@@ -20,7 +33,7 @@ curl -fsSL https://get.docker.com -o get-docker.sh
 sh get-docker.sh
 ```
 
-### 2. GitHub SSH Key Configuration
+### 3. GitHub SSH Key Configuration
 
 To clone the repository securely, generate an SSH key on the server:
 
@@ -40,7 +53,7 @@ Copy the output and add it to your GitHub account:
 2. Click "New SSH key".
 3. Paste the key and save.
 
-### 3. Clone Repository
+### 4. Clone Repository
 
 Once the SSH key is added to GitHub, clone the repository and navigate into the project directory:
 
@@ -49,7 +62,7 @@ git clone git@github.com:maksymminullin/website-change-monitor.git
 cd website-change-monitor
 ```
 
-### 4. Environment Configuration
+### 5. Environment & Caddy Configuration
 
 Ensure you are inside the `website-change-monitor` directory. Copy the example environment file:
 
@@ -68,9 +81,11 @@ Configure the following variables:
 - `POSTGRES_PASSWORD`: Set a secure database password.
 - `DATABASE_URL`: Ensure it matches the production DB connection string and incorporates the new password: `postgresql+asyncpg://postgres:YOUR_PASSWORD@db:5432/monitor_db`.
 
-Save the file and exit the editor (in `nano`: press `Ctrl+O`, `Enter`, then `Ctrl+X`).
+Save the file and exit the editor.
 
-### 5. Deploy Services
+**Note on Domain Configuration:** By default, the `Caddyfile` is configured to use the server's IP address. If you own a domain (e.g., `web.monitor.com`), open `Caddyfile`, replace the IP address with your domain name, and Caddy will automatically provision a Let's Encrypt SSL certificate for HTTPS.
+
+### 6. Deploy Services
 
 Start the stack using the production compose file. This command downloads the required images and starts the containers in the background:
 
@@ -78,7 +93,7 @@ Start the stack using the production compose file. This command downloads the re
 docker compose -f docker-compose-prod.yml up -d --build
 ```
 
-### 6. Database Migrations
+### 7. Database Migrations
 
 Apply Alembic migrations to initialize the database schema:
 

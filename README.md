@@ -178,3 +178,4 @@ uv run ruff format .
 ## Limitations & Future Plans
 
 - **Scalability:** The current `APScheduler` implementation runs entirely in a single container. For highly scaled workloads, this should be decoupled into a distributed queue system like Celery or RQ backed by Redis.
+

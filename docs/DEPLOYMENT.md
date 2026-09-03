@@ -104,3 +104,42 @@ Stop all services:
 ```bash
 docker compose -f docker-compose-prod.yml down
 ```
+
+## Continuous Deployment (GitHub Actions)
+
+The repository includes a CI/CD pipeline (`.github/workflows/ci-cd.yml`) that automatically runs linting, testing, and deploys the application to the production server upon pushing to the `main` branch.
+
+To enable automated deployments, the GitHub Actions runner requires SSH access to your server.
+
+### 1. Generate a Dedicated SSH Key for GitHub Actions
+
+On your server, run the following command to generate a new key pair without a passphrase:
+
+```bash
+ssh-keygen -t ed25519 -f ~/.ssh/github_actions -N ""
+```
+
+### 2. Authorize the Key on the Server
+
+Append the public key to the server's authorized keys list to allow access:
+
+```bash
+cat ~/.ssh/github_actions.pub >> ~/.ssh/authorized_keys
+```
+
+### 3. Add Secrets to GitHub
+
+Output the private key content:
+
+```bash
+cat ~/.ssh/github_actions
+```
+
+Copy the entire output (including the `BEGIN` and `END` header/footer lines).
+
+Navigate to your GitHub repository -> **Settings** -> **Secrets and variables** -> **Actions**. Create the following two repository secrets:
+
+- `SSH_PRIVATE_KEY`: Paste the private key content copied in the previous step.
+- `HOST_IP`: Enter the public IPv4 address of your server.
+
+Once configured, any push to the `main` branch will trigger the automated deployment pipeline.

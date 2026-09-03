@@ -1,0 +1,3 @@
+web.monitor.com {
+    reverse_proxy api:8000
+}

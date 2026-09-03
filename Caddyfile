@@ -1,3 +1,3 @@
-web.monitor.com {
+http://46.101.176.199 {
     reverse_proxy api:8000
 }

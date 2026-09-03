@@ -63,26 +63,20 @@ jobs:
         run: |
           uv run pytest
 
-  # deploy:
-  #   needs: test
-  #   runs-on: ubuntu-latest
-  #   if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-  #   
-  #   steps:
-  #     - name: Check out repository
-  #       uses: actions/checkout@v4
-  #
-  #     - name: Deploy to Server via SSH
-  #       uses: appleboy/ssh-action@v1.0.3
-  #       with:
-  #         host: ${{ secrets.SERVER_HOST }}
-  #         username: ${{ secrets.SERVER_USER }}
-  #         key: ${{ secrets.SERVER_SSH_KEY }}
-  #         script: |
-  #           cd /path/to/your/project/Website-Change-Monitor
-  #           git pull origin main
-  #           
-  #           docker-compose -f docker-compose-prod.yml build
-  #           docker-compose -f docker-compose-prod.yml up -d
-  #           
-  #           docker-compose -f docker-compose-prod.yml exec -T web uv run alembic upgrade head
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Execute deployment commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/website-change-monitor
+            git pull
+            docker system prune -a -f
+            docker compose -f docker-compose-prod.yml up -d --build
+            docker compose -f docker-compose-prod.yml exec -T api alembic upgrade head

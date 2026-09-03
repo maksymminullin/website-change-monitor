@@ -15,6 +15,7 @@ services:
 
   api:
     image: website-change-monitor:latest
+    pull_policy: build
     build: .
     restart: unless-stopped
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers
@@ -26,6 +27,7 @@ services:
 
   worker:
     image: website-change-monitor:latest
+    pull_policy: never
     restart: unless-stopped
     command: python -m app.worker.main
     env_file:

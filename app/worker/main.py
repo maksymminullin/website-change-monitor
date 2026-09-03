@@ -1,10 +1,16 @@
 import asyncio
 import signal
 
+from app.core.logging import get_logger, setup_logging
 from app.worker.scheduler import setup_scheduler
+
+logger = get_logger(__name__)
 
 
 async def main() -> None:
+    setup_logging()
+    logger.info("Starting Website Monitor Worker...")
+    
     scheduler = setup_scheduler()
     scheduler.start()
 

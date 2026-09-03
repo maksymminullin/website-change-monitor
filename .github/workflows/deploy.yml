@@ -1,0 +1,24 @@
+name: Deploy to Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Execute deployment commands via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.HOST_IP }}
+          username: root
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          script: |
+            cd ~/website-change-monitor
+            git pull
+            # Prune dangling images to ensure we have disk space for the build
+            docker image prune -f
+            docker compose -f docker-compose-prod.yml up -d --build
+            docker compose -f docker-compose-prod.yml exec -T api alembic upgrade head

@@ -18,6 +18,7 @@ services:
       start_period: 10s
 
   api:
+    image: website-change-monitor:latest
     build: .
     restart: unless-stopped
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --proxy-headers
@@ -28,6 +29,7 @@ services:
         condition: service_healthy
 
   worker:
+    image: website-change-monitor:latest
     build: .
     restart: unless-stopped
     command: python -m app.worker.main
